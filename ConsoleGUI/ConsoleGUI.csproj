@@ -1,0 +1,42 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net7.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+        <UserSecretsId>51e434f8-37e7-44f7-8a47-e971567f052f</UserSecretsId>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <PackageReference Include="Fody" Version="6.6.4">
+        <PrivateAssets>all</PrivateAssets>
+        <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      </PackageReference>
+      <PackageReference Include="MethodBoundaryAspect.Fody" Version="2.0.148" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="Attributes" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Remove="Visuals\Figlet\4max.flf" />
+      <EmbeddedResource Include="Visuals\Figlet\4max.flf" />
+      <None Remove="Visuals\Figlet\amc3.flf" />
+      <EmbeddedResource Include="Visuals\Figlet\amc3.flf" />
+      <None Remove="Visuals\Figlet\ansi regular.flf" />
+      <EmbeddedResource Include="Visuals\Figlet\ansi regular.flf" />
+      <None Remove="Visuals\Figlet\ansi shadow.flf" />
+      <EmbeddedResource Include="Visuals\Figlet\ansi shadow.flf" />
+      <None Remove="Visuals\Figlet\bigfig.flf" />
+      <EmbeddedResource Include="Visuals\Figlet\bigfig.flf" />
+      <None Remove="Visuals\Figlet\calvin s.flf" />
+      <EmbeddedResource Include="Visuals\Figlet\calvin s.flf" />
+      <None Remove="Visuals\Figlet\cyber.flf" />
+      <EmbeddedResource Include="Visuals\Figlet\cyber.flf" />
+      <None Remove="Visuals\Figlet\default.flf" />
+      <EmbeddedResource Include="Visuals\Figlet\default.flf" />
+    </ItemGroup>
+
+</Project>
