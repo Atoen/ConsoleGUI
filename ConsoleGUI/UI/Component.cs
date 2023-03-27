@@ -5,7 +5,6 @@ public abstract class Component
     public State State { get; protected set; } = State.Default;
     public bool Enabled { get; private set; } = true;
     public bool Active { get; set; } = true;
-    public bool HitTestVisible => Enabled;
 
     public ResizeMode ResizeMode { get; set; } = ResizeMode.Stretch;
     public ZIndexUpdateMode ZIndexUpdateMode { get; set; } = ZIndexUpdateMode.OneHigherThanParent;

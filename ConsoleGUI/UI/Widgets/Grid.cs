@@ -272,7 +272,7 @@ public class Grid : Control
         for (var i = 0; i < rows - 1; i++)
         {
             pos.Y = linesStart.Y + Rows.Offset(i) + Rows[i].Size;
-            
+
             Display.DrawLine(pos, Vector.Right, InnerWidth, GridLinesColor, CurrentColor,
                 GridLines.Symbols[GridLineStyle][GridLineFragment.Horizontal]);
 

@@ -103,7 +103,7 @@ public sealed class AnsiDisplay : IRenderer
         {
             _currentPixels[x, posY].Symbol = text[i];
             _currentPixels[x, posY].Mode = mode;
-            
+
             if (fg != Color.Empty) _currentPixels[x, posY].Fg = fg;
             if (bg != Color.Empty) _currentPixels[x, posY].Bg = bg;
         }

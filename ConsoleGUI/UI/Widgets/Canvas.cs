@@ -8,15 +8,16 @@ public class Canvas : ContentControl
     public Canvas(int width, int height)
     {
         Buffer = new PixelBuffer(width, height);
-        Buffer.Fill(Color.Empty, Color.White);
+        Buffer.Fill(Color.Empty, EmptyColor);
 
         ShowFocusedBorder = false;
     }
 
-    public bool Resizable { get; set; } = true;
+    public bool CanGripResize { get; set; }
     public Color ResizeGripColor { get; set; } = Color.Gray;
 
     public readonly PixelBuffer Buffer;
+    public Color EmptyColor { get; set; } = Color.White;
 
     public bool InResizeMode { get; private set; }
     private Vector _resizeStartPos;
@@ -43,8 +44,7 @@ public class Canvas : ContentControl
 
         var newSize = Buffer.Size + sizeDifference;
 
-        Buffer.Resize(newSize);
-        Buffer.Fill(Color.Empty, Color.White);
+        Buffer.Resize(newSize, EmptyColor);
         Resize();
 
         _resizeStartPos = e.CursorPosition;
@@ -52,7 +52,7 @@ public class Canvas : ContentControl
 
     private void EnterResizeMode(MouseEventArgs e)
     {
-        if (!Resizable) return;
+        if (!CanGripResize) return;
 
         InResizeMode = true;
         _resizeStartPos = e.CursorPosition;
@@ -92,7 +92,7 @@ public class Canvas : ContentControl
 
         Display.DrawBuffer(pos, Buffer);
 
-        if (!Resizable) return;
+        if (!CanGripResize) return;
 
         var lowerRightEdge = GlobalPosition + InnerSize;
 

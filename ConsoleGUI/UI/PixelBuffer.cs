@@ -13,6 +13,7 @@ public class PixelBuffer : IEnumerable<Pixel>
         _size.Y = height;
     }
 
+    public bool KeepContentWhenResizing { get; set; } = false;
     public Pixel[,] Data { get; private set; }
     public Vector Size => _size;
     private Vector _size;
@@ -20,10 +21,25 @@ public class PixelBuffer : IEnumerable<Pixel>
     public ref Pixel this[int x, int y] => ref Data[x, y];
     public ref Pixel this[Vector pos] => ref Data[pos.X, pos.Y];
 
-    public void Resize(Vector newSize)
+    public void Resize(Vector newSize, Color colorToFill)
     {
-        Data = new Pixel[newSize.X, newSize.Y];
+        var newBuffer = new Pixel[newSize.X, newSize.Y];
 
+        for (var x = 0; x < newSize.X; x++)
+        for (var y = 0; y < newSize.Y; y++)
+        {
+            if (KeepContentWhenResizing && x < _size.X && y < _size.Y)
+            {
+                newBuffer[x, y] = Data[x, y];
+            }
+            else
+            {
+                newBuffer[x, y].Bg = colorToFill;
+                newBuffer[x, y].Symbol = ' ';
+            }
+        }
+
+        Data = newBuffer;
         _size = newSize;
     }
 

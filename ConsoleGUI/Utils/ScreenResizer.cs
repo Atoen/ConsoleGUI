@@ -29,7 +29,7 @@ internal static class ScreenResizer
         }
     }
 
-    public static bool Resize(bool modifyConsoleBufferSize = true)
+    public static bool Resize(bool modifyConsoleBufferSize)
     {
 #pragma warning disable CA1416
         if (modifyConsoleBufferSize) ChangeConsoleBufferSize();

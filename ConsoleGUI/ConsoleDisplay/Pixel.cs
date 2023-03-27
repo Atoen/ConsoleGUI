@@ -3,7 +3,7 @@
 [DebuggerDisplay("Pixel({Symbol}), Fg: {Fg.ToString()}, Bg: {Bg.ToString()}, Mode: {Mode}")]
 public struct Pixel : IEquatable<Pixel>
 {
-    private Pixel(char symbol, Color fg, Color bg, TextMode mode)
+    public Pixel(char symbol, Color fg, Color bg, TextMode mode)
     {
         Symbol = symbol;
         Fg = fg;

@@ -13,6 +13,20 @@ public static class Display
     public static int Height => ScreenResizer.ScreenHeight;
     public static DisplayMode Mode { get; private set; }
 
+    public static int RefreshRate
+    {
+        get => _refreshRate;
+        set
+        {
+            if (value < 1) throw new ArgumentException("Refresh rate must be greater than 0", nameof(RefreshRate));
+
+            _refreshRate = value;
+            _frameTime = 1000 / value;
+        }
+    }
+
+    private static int _refreshRate = 20; // Hz
+    private static int _frameTime = 1000 / 20;
     private static volatile bool _refreshing;
 
     private static readonly List<IRenderable> Renderables = new();
@@ -148,7 +162,6 @@ public static class Display
 
     private static void MainLoop()
     {
-        const int tickLength = 1000 / 20;
         var stopwatch = new Stopwatch();
 
         _refreshing = true;
@@ -163,7 +176,7 @@ public static class Display
             Draw();
 
             stopwatch.Stop();
-            var sleepTime = tickLength - (int) stopwatch.ElapsedMilliseconds;
+            var sleepTime = _frameTime - (int) stopwatch.ElapsedMilliseconds;
 
             stopwatch.Reset();
 

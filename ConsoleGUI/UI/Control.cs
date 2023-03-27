@@ -18,6 +18,14 @@ public abstract class  Control : VisualComponent
 
     public int TabIndex { get; set; }
 
+    
+    private bool _hitTestVisible = true;
+    public bool HitTestVisible
+    {
+        get => _hitTestVisible && Enabled;
+        set => _hitTestVisible = value;
+    }
+
     public override void Render()
     {
         base.Render();
