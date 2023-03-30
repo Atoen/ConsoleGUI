@@ -1,4 +1,5 @@
 ﻿using ConsoleGUI.ConsoleDisplay;
+using ConsoleGUI.UI.Events;
 using ConsoleGUI.Visuals;
 
 namespace ConsoleGUI.UI.Widgets;
@@ -10,6 +11,13 @@ public partial class Grid
 
     private bool[,] _verticalLineSegments = new bool[0, 0];
     private bool[,] _horizontalLineSegments = new bool[0, 0];
+
+    protected override void OnPositionChanged(object sender, PositionChangedEventArgs e)
+    {
+        _shouldRegenerateLines = true;
+        
+        base.OnPositionChanged(sender, e);
+    }
 
     private void CalculateLinesPositions()
     {
