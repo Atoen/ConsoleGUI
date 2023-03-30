@@ -15,7 +15,7 @@ public interface IRenderer
 
     void DrawBuffer(Vector start, Vector end, Pixel[,] buffer);
 
-    void DrawBorder(Vector start, Vector end, Color color, BorderStyle style);
+    void DrawBorder(Vector start, Vector end, Color color, BorderStyle style, bool fitsHorizontally, bool fitsVertically);
 
     void ClearAt(int posX, int posY);
 

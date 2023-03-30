@@ -14,6 +14,7 @@ public class Canvas : ContentControl
     }
 
     public bool CanGripResize { get; set; }
+    public Vector GripPosition => InnerSize;
     public Color ResizeGripColor { get; set; } = Color.Gray;
 
     public readonly PixelBuffer Buffer;
@@ -21,6 +22,7 @@ public class Canvas : ContentControl
 
     public bool InResizeMode { get; private set; }
     private Vector _resizeStartPos;
+    protected bool DisplayingGrip;
 
     protected bool IsCorrectDrawPosition(Vector pos)
     {
@@ -58,6 +60,21 @@ public class Canvas : ContentControl
         _resizeStartPos = e.CursorPosition;
     }
 
+    protected override void OnMouseEnter(MouseEventArgs e)
+    {
+        if (CanGripResize) DisplayingGrip = true;
+        
+        base.OnMouseEnter(e);
+    }
+
+    protected override void OnMouseExit(MouseEventArgs e)
+    {
+        if (CanGripResize) DisplayingGrip = false;
+        InResizeMode = false;
+        
+        base.OnMouseExit(e);
+    }
+
     protected override void OnMouseMove(MouseEventArgs e)
     {
         if (InResizeMode) GripResize(e);
@@ -67,7 +84,7 @@ public class Canvas : ContentControl
 
     protected override void OnMouseLeftDown(MouseEventArgs e)
     {
-        if (e.RelativeCursorPosition == InnerSize) EnterResizeMode(e);
+        if (e.RelativeCursorPosition == GripPosition) EnterResizeMode(e);
 
         base.OnMouseLeftDown(e);
     }
@@ -75,13 +92,16 @@ public class Canvas : ContentControl
     protected override void OnMouseLeftUp(MouseEventArgs e)
     {
         InResizeMode = false;
+        if (IsMouseOver) DisplayingGrip = true;
+        
         base.OnMouseLeftUp(e);
     }
 
-    protected override void OnMouseExit(MouseEventArgs e)
+    protected override void OnMouseRightUp(MouseEventArgs e)
     {
-        InResizeMode = false;
-        base.OnMouseExit(e);
+        if (IsMouseOver) DisplayingGrip = true;
+        
+        base.OnMouseRightUp(e);
     }
 
     public override void Render()
@@ -92,12 +112,10 @@ public class Canvas : ContentControl
 
         Display.DrawBuffer(pos, Buffer);
 
-        if (!CanGripResize) return;
+        if (!CanGripResize || !DisplayingGrip) return;
 
-        var lowerRightEdge = GlobalPosition + InnerSize;
+        var globalGripPosition = GlobalPosition + GripPosition;
 
-        Display.Draw(lowerRightEdge.X, lowerRightEdge.Y, 'J', Color.Empty, ResizeGripColor);
-        Display.Draw(lowerRightEdge.X - 1, lowerRightEdge.Y, '\\', Color.Empty, ResizeGripColor);
-        Display.Draw(lowerRightEdge.X, lowerRightEdge.Y - 1, '\\', Color.Empty, ResizeGripColor);
+        Display.Draw(globalGripPosition.X, globalGripPosition.Y, 'O', Color.Empty, ResizeGripColor);
     }
 }

@@ -18,7 +18,7 @@ public abstract class  Control : VisualComponent
 
     public int TabIndex { get; set; }
 
-    
+
     private bool _hitTestVisible = true;
     public bool HitTestVisible
     {

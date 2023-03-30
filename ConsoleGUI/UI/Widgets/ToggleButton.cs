@@ -9,7 +9,7 @@ public class ToggleButton<T> : Button
         Text = new Text(nameof(ToggleButton<T>)) {Parent = this};
     }
 
-    public required ToggleStateManager<T> ToggleManager { get; set; }
+    public required ToggleStateManager<T> ToggleManager { get; init; }
     public T ToggleState => ToggleManager.Current.Value;
 
     public bool StartWidthBuiltInText { get; set; } = false;
@@ -54,13 +54,17 @@ public class ToggleStateManager<T>
 {
     public ToggleStateManager(string name = "", params T[] states)
     {
+        Name = name;
+
         foreach (var state in states)
         {
-            States.Add(new StateEntry(name, $"{name}: {state}", state));
+            States.Add(new StateEntry($"{name}: {state}", state));
         }
     }
 
-    public readonly record struct StateEntry(string Name, string Text, T Value);
+    public readonly record struct StateEntry(string Text, T Value);
+
+    public string Name { get; set; }
 
     public readonly List<StateEntry> States = new();
     public int StateIndex { get; private set; }

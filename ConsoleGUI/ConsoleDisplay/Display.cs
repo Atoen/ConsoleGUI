@@ -133,7 +133,11 @@ public static class Display
     {
         if (!CalculateDrawArea(pos, size, out var start, out var end)) return;
 
-        _renderer.DrawBorder(start, end, color, style);
+        var calculatedSize = end - start;
+        var fitsHorizontally = size.X == calculatedSize.X;
+        var fitsVertically = size.Y == calculatedSize.Y;
+
+        _renderer.DrawBorder(start, end, color, style, fitsHorizontally, fitsVertically);
     }
 
     public static void DrawBuffer(Vector pos, PixelBuffer buffer)
@@ -145,9 +149,12 @@ public static class Display
 
     private static void Start()
     {
+#if !DEBUG
         try
         {
+#endif
             MainLoop();
+#if !DEBUG
         }
         catch (Exception exception)
         {
@@ -155,6 +162,7 @@ public static class Display
 
             Throw(exception);
         }
+#endif
     }
 
     [Conditional("DEBUG")]

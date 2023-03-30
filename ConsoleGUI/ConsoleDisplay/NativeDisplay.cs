@@ -123,7 +123,8 @@ public sealed class NativeDisplay : IRenderer
         }
     }
 
-    public void DrawBorder(Vector pos, Vector size, Color color, BorderStyle style)
+    public void DrawBorder(Vector pos, Vector size, Color color, BorderStyle style, bool FitsHorizontally,
+        bool FitsVertically)
     {
     }
 

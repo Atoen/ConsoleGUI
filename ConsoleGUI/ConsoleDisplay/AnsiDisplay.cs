@@ -50,7 +50,7 @@ public sealed class AnsiDisplay : IRenderer
     public void DrawRect(Vector start, Vector end, Color color, char symbol = ' ')
     {
         if (color == Color.Empty) return;
-        
+
         for (var x = start.X; x < end.X; x++)
         for (var y = start.Y; y < end.Y; y++)
         {
@@ -118,10 +118,11 @@ public sealed class AnsiDisplay : IRenderer
         }
     }
 
-    public void DrawBorder(Vector start, Vector end, Color color, BorderStyle style)
+    public void DrawBorder(Vector start, Vector end, Color color, BorderStyle style,
+        bool fitsHorizontally, bool fitsVertically)
     {
         if (color == Color.Empty) return;
-        
+
         for (var x = start.X + 1; x < end.X - 1; x++)
         {
             _currentPixels[x, start.Y].Symbol = Border.Symbols[style][BorderFragment.Horizontal];
@@ -142,9 +143,6 @@ public sealed class AnsiDisplay : IRenderer
 
         _currentPixels[start.X, start.Y].Symbol = Border.Symbols[style][BorderFragment.UpperLeft];
         _currentPixels[start.X, start.Y].Fg = color;
-
-        var fitsHorizontally = end.X > start.X;
-        var fitsVertically = end.Y > start.Y;
 
         if (fitsHorizontally)
         {
@@ -184,7 +182,7 @@ public sealed class AnsiDisplay : IRenderer
     {
         CopyToBuffer();
         if (!_modified) return;
-        
+
         GenerateDisplayString();
 
         _modified = false;

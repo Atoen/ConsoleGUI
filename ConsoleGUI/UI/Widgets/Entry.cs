@@ -15,11 +15,14 @@ public class Entry : ContentControl
         {
             _text.Remove();
             _text.Parent = null!;
-            
+
             _text = value;
             _text.Parent = this;
 
-            MaxTextLenght = _text.Length;
+            if (MaxTextLenght < _text.Length)
+            {
+                MaxTextLenght = _text.Length;
+            }
         }
     }
 
@@ -65,7 +68,7 @@ public class Entry : ContentControl
         _inEntryMode = false;
         Text.Animating = false;
         Text.TextMode = TextMode.Default;
-        
+
         if (InputMode != EntryMode.Digits) return;
 
         if (string.IsNullOrWhiteSpace(Text.String)) Text.String = "0";
@@ -101,9 +104,9 @@ public class Entry : ContentControl
     {
         // Keypress of allowed character while the entry is focused should append said character
         if (Focused && !_inEntryMode && CheckIfAllowed(e.Char)) EnterEntryMode();
-        
+
         if (_inEntryMode) EnterText(e);
-        
+
         base.OnKeyDown(e);
     }
 
@@ -118,16 +121,16 @@ public class Entry : ContentControl
     protected override void OnLostFocus(InputEventArgs e)
     {
         ExitEntryMode();
-        
+
         base.OnLostFocus(e);
     }
 
     public override void Resize()
     {
         MinSize = InnerPadding * 2 + (MaxTextLenght + 1, 1);
-        
+
         ApplyResizing();
-        
+
         base.Resize();
     }
 }

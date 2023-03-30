@@ -248,12 +248,12 @@ public abstract class Component
         SizeChanged += _parent.OnChildSizeChanged;
     }
 
-    private void OnPositionChanged(Component sender, PositionChangedEventArgs e)
+    protected virtual void OnPositionChanged(Component sender, PositionChangedEventArgs e)
     {
         PositionChanged?.Invoke(sender, e);
     }
 
-    private void OnChildSizeChanged(Component sender, SizeChangedEventArgs e)
+    protected virtual void OnChildSizeChanged(Component sender, SizeChangedEventArgs e)
     {
         SizeChanged?.Invoke(sender, e);
 

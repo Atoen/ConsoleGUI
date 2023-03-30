@@ -4,7 +4,7 @@ using ConsoleGUI.Visuals;
 
 namespace ConsoleGUI.UI.Widgets;
 
-public class Grid : Control
+public partial class Grid : Control
 {
     public Grid()
     {
@@ -32,6 +32,7 @@ public class Grid : Control
 
     private readonly List<Entry> _entries = new();
     private bool _resizingContentNow;
+    private bool _shouldRegenerateLines;
 
     public void SetColumnAndRow(Control control, int column, int row, bool addChild = true)
     {
@@ -215,6 +216,7 @@ public class Grid : Control
         _entries.RemoveAll(e => !e.Reference.IsAlive);
 
         _resizingContentNow = false;
+        _shouldRegenerateLines = true;
     }
 
     private void ChildrenOnElementChanged(object? sender, CollectionChangedEventArgs<Control> e)
@@ -232,6 +234,7 @@ public class Grid : Control
 
     private void ColumnsOnCollectionChanged(object? sender, EventArgs e)
     {
+        CreateLineSegments();
         Columns.SetEvenSizes(InnerWidth);
 
         if (_entries.Count > 0) Resize();
@@ -239,56 +242,10 @@ public class Grid : Control
 
     private void RowsOnCollectionChanged(object? sender, EventArgs e)
     {
+        CreateLineSegments();
         Rows.SetEvenSizes(InnerHeight);
 
         if (_entries.Count > 0) Resize();
-    }
-
-    private void RenderLines()
-    {
-        var columns = Columns.Count;
-        var rows = Rows.Count;
-
-        Span<Vector> crosses = stackalloc Vector[(columns - 1) * (rows - 1)];
-
-        var linesStart = GlobalPosition + InnerPadding;
-        var pos = linesStart;
-
-        for (var i = 0; i < columns - 1; i++)
-        {
-            pos.X = linesStart.X + Columns.Offset(i) + Columns[i].Size;
-
-            Display.DrawLine(pos, Vector.Down, InnerHeight, GridLinesColor, CurrentColor,
-                GridLines.Symbols[GridLineStyle][GridLineFragment.Vertical]);
-
-            for (var c = i; c < crosses.Length; c += columns - 1)
-            {
-                crosses[c].X = pos.X;
-            }
-        }
-
-        pos = linesStart;
-
-        for (var i = 0; i < rows - 1; i++)
-        {
-            pos.Y = linesStart.Y + Rows.Offset(i) + Rows[i].Size;
-
-            Display.DrawLine(pos, Vector.Right, InnerWidth, GridLinesColor, CurrentColor,
-                GridLines.Symbols[GridLineStyle][GridLineFragment.Horizontal]);
-
-            for (var c = 0; c < columns - 1; c++)
-            {
-                var index = c + i * (columns - 1);
-
-                crosses[index].Y = pos.Y;
-            }
-        }
-
-        foreach (var crossPosition in crosses)
-        {
-            Display.Draw(crossPosition.X, crossPosition.Y, GridLines.Symbols[GridLineStyle][GridLineFragment.Cross],
-                GridLinesColor, CurrentColor);
-        }
     }
 
     public override void Render()
@@ -326,6 +283,8 @@ public class Grid : Control
 
             if (entry.MultiCell)
             {
+                HideLinesForMultiCell(entry.Column, entry.Row, entry.ColumnSpan, entry.RowSpan);
+
                 multiCellEntries.Add(entry);
                 continue;
             }
@@ -348,8 +307,7 @@ public class Grid : Control
 
         foreach (var entry in multiCellEntries)
         {
-            if (entry.RefTarget is not { } control) continue;
-            var minSize = control.RequiredSpace;
+            var minSize = entry.RefTarget!.RequiredSpace;
 
             Columns.MatchSize(entry.Column, entry.ColumnSpan, minSize.X);
             Rows.MatchSize(entry.Row, entry.RowSpan, minSize.Y);
@@ -405,3 +363,5 @@ public enum GridResizeDirection
     Horizontal,
     Both
 }
+
+

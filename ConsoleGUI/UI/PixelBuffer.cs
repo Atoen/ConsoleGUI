@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using ConsoleGUI.ConsoleDisplay;
+using ConsoleGUI.Utils;
 
 namespace ConsoleGUI.UI;
 
@@ -13,7 +14,7 @@ public class PixelBuffer : IEnumerable<Pixel>
         _size.Y = height;
     }
 
-    public bool KeepContentWhenResizing { get; set; } = false;
+    public bool KeepContentWhenResizing { get; set; } = true;
     public Pixel[,] Data { get; private set; }
     public Vector Size => _size;
     private Vector _size;
@@ -78,7 +79,8 @@ public class PixelBuffer : IEnumerable<Pixel>
         {
             _x++;
             if (_x < _buffer.Size.X) return _y < _buffer.Size.Y;
-            _x = 0;
+            
+            _x = 0.RoundTo(1);
             _y++;
 
             return _y < _buffer.Size.Y;
