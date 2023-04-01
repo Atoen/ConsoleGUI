@@ -17,7 +17,8 @@ public class Canvas : ContentControl
     public Vector GripPosition => InnerSize;
     public Color ResizeGripColor { get; set; } = Color.Gray;
 
-    public readonly PixelBuffer Buffer;
+    public PixelBuffer Buffer { get; }
+    public Vector MinBufferSize { get; set; } = new(7, 5);
     public Color EmptyColor { get; set; } = Color.White;
 
     public bool InResizeMode { get; private set; }
@@ -45,6 +46,10 @@ public class Canvas : ContentControl
         if (sizeDifference == Vector.Zero) return;
 
         var newSize = Buffer.Size + sizeDifference;
+
+        newSize = newSize.ExpandTo(MinBufferSize);
+        
+        if (newSize == Buffer.Size) return;
 
         Buffer.Resize(newSize, EmptyColor);
         Resize();
@@ -112,10 +117,17 @@ public class Canvas : ContentControl
 
         Display.DrawBuffer(pos, Buffer);
 
-        if (!CanGripResize || !DisplayingGrip) return;
+        if (DisplayingGrip)
+        {
+            var globalGripPosition = GlobalPosition + GripPosition;
 
-        var globalGripPosition = GlobalPosition + GripPosition;
+            Display.Draw(globalGripPosition.X, globalGripPosition.Y, 'O', Color.Empty, ResizeGripColor);
+        }
 
-        Display.Draw(globalGripPosition.X, globalGripPosition.Y, 'O', Color.Empty, ResizeGripColor);
+        if (InResizeMode)
+        {
+            Display.Print(Center.X, Center.Y, $"{Buffer.Size.X}x{Buffer.Size.Y}", Color.Gray, Color.Empty,
+                mode: TextMode.Italic);
+        }
     }
 }
