@@ -48,7 +48,7 @@ public class Canvas : ContentControl
         var newSize = Buffer.Size + sizeDifference;
 
         newSize = newSize.ExpandTo(MinBufferSize);
-        
+
         if (newSize == Buffer.Size) return;
 
         Buffer.Resize(newSize, EmptyColor);
@@ -68,7 +68,7 @@ public class Canvas : ContentControl
     protected override void OnMouseEnter(MouseEventArgs e)
     {
         if (CanGripResize) DisplayingGrip = true;
-        
+
         base.OnMouseEnter(e);
     }
 
@@ -76,7 +76,7 @@ public class Canvas : ContentControl
     {
         if (CanGripResize) DisplayingGrip = false;
         InResizeMode = false;
-        
+
         base.OnMouseExit(e);
     }
 
@@ -98,14 +98,14 @@ public class Canvas : ContentControl
     {
         InResizeMode = false;
         if (IsMouseOver) DisplayingGrip = true;
-        
+
         base.OnMouseLeftUp(e);
     }
 
     protected override void OnMouseRightUp(MouseEventArgs e)
     {
         if (IsMouseOver) DisplayingGrip = true;
-        
+
         base.OnMouseRightUp(e);
     }
 
@@ -126,8 +126,25 @@ public class Canvas : ContentControl
 
         if (InResizeMode)
         {
-            Display.Print(Center.X, Center.Y, $"{Buffer.Size.X}x{Buffer.Size.Y}", Color.Gray, Color.Empty,
-                mode: TextMode.Italic);
+            PrintDimensions();
         }
+    }
+
+    private void PrintDimensions()
+    {
+        Span<char> span = stackalloc char[8];
+
+        var bufferWidth = Buffer.Size.X;
+        var bufferHeight = Buffer.Size.Y;
+
+        bufferWidth.TryFormat(span, out var length);
+        span[length++] = 'x';
+
+        bufferHeight.TryFormat(span[length..], out var secondLength);
+        length += secondLength;
+
+        span = span[..length];
+
+        Display.Print(Center.X, Center.Y, span, Color.Gray, Color.Empty, mode: TextMode.Italic);
     }
 }

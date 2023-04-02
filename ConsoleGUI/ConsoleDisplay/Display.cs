@@ -72,7 +72,7 @@ public static class Display
 
     public static void Stop() => _refreshing = false;
 
-    public static void AddToRenderList(IRenderable renderable)
+    internal static void AddToRenderList(IRenderable renderable)
     {
         renderable.ZIndexChanged += RenderableOnZIndexChanged;
 
@@ -81,7 +81,7 @@ public static class Display
         LockSlim.ExitWriteLock();
     }
 
-    public static void RemoveFromRenderList(IRenderable renderable)
+    internal static void RemoveFromRenderList(IRenderable renderable)
     {
         renderable.ZIndexChanged -= RenderableOnZIndexChanged;
 
@@ -102,7 +102,7 @@ public static class Display
 
     public static void ResetStyle() => _renderer.ResetStyle();
 
-    public static void Print(int posX, int posY, string text, Color foreground, Color background,
+    public static void Print(int posX, int posY, ReadOnlySpan<char> text, Color foreground, Color background,
         Alignment alignment = Alignment.Center, TextMode mode = TextMode.Default)
     {
         _renderer.Print(posX, posY, text, foreground, background, alignment, mode);

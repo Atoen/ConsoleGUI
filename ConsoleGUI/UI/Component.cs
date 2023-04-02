@@ -207,7 +207,7 @@ public abstract class Component
 
         if (value != positionBefore)
         {
-            PositionChanged?.Invoke(this, new PositionChangedEventArgs(value - positionBefore));
+            PositionChanged?.Invoke(this, new PositionChangedEventArgs(positionBefore, value));
         }
     }
 
@@ -255,8 +255,6 @@ public abstract class Component
 
     protected virtual void OnChildSizeChanged(Component sender, SizeChangedEventArgs e)
     {
-        SizeChanged?.Invoke(sender, e);
-
         if (ResizeMode != ResizeMode.Manual)
         {
             Resize();
@@ -289,9 +287,14 @@ public enum ResizeMode
 
 public class PositionChangedEventArgs : EventArgs
 {
-    public PositionChangedEventArgs(Vector delta) => Delta = delta;
+    public PositionChangedEventArgs(Vector oldPos, Vector newPos)
+    {
+        OldPos = oldPos;
+        NewPos = newPos;
+    }
 
-    public Vector Delta { get; }
+    public Vector OldPos { get; }
+    public Vector NewPos { get; }
 }
 
 public class SizeChangedEventArgs : EventArgs

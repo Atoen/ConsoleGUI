@@ -3,7 +3,7 @@ using Microsoft.Win32.SafeHandles;
 
 namespace ConsoleGUI;
 
-public static partial class NativeConsole
+internal static partial class NativeConsole
 {
     [LibraryImport("kernel32.dll")]
     public static partial nint GetStdHandle(uint nStdHandle);

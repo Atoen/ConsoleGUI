@@ -80,11 +80,44 @@ public abstract class VisualComponent : Component, IRenderable
 
     protected virtual void OnPositionChanged(object sender, PositionChangedEventArgs e)
     {
-        Display.ClearRect(GlobalPosition - e.Delta, Size);
+        var delta = e.OldPos - e.NewPos;
+        var globalPos = GlobalPosition;
+
+        if (delta.X < 0)
+        {
+            Display.DrawRect(globalPos, Size with {X = delta.X}, Color.Red);
+        }
+        else if (delta.X > 0)
+        {
+            Display.DrawRect(globalPos with {X = globalPos.X + Size.X - 1}, Size with {X = delta.X}, Color.Red);
+        }
+        
+        if (delta.Y < 0)
+        {
+            Display.DrawRect(globalPos, Size with {Y = delta.Y}, Color.Red);
+        }
+        else if (delta.Y > 0)
+        {
+            Display.DrawRect(globalPos with {Y = globalPos.Y + Size.Y - 1}, Size with {Y = delta.Y}, Color.Red);
+        }
     }
 
     protected virtual void OnSizeChanged(object sender, SizeChangedEventArgs e)
     {
-        Display.ClearRect(GlobalPosition, e.OldSize);
+        var newSize = e.NewSize;
+        var oldSize = e.OldSize;
+
+        if (newSize.X >= oldSize.X && newSize.Y >= oldSize.Y) return;
+        
+        var globalPos = GlobalPosition;
+
+        var verticalPos = globalPos with { X = globalPos.X + oldSize.X - 1 };
+        var horizontalPos = globalPos with { Y = globalPos.Y + oldSize.Y - 1 };
+        
+        var verticalFragment = oldSize with { X = oldSize.X - newSize.X };
+        var horizontalFragment = oldSize with { Y = oldSize.Y - newSize.Y };
+        
+        Display.ClearRect(verticalPos, verticalFragment);
+        Display.ClearRect(horizontalPos, horizontalFragment);
     }
 }

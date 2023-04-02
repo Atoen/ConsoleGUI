@@ -80,7 +80,7 @@ public sealed class NativeDisplay : IRenderer
         }
     }
 
-    public void Print(int posX, int posY, string text, Color fg, Color bg, Alignment alignment, TextMode _)
+    public void Print(int posX, int posY, ReadOnlySpan<char> text, Color fg, Color bg, Alignment alignment, TextMode _)
     {
         if (posY < 0 || posY >= _displaySize.Y) return;
 

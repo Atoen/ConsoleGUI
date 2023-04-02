@@ -75,7 +75,8 @@ public sealed class AnsiDisplay : IRenderer
         }
     }
 
-    public void Print(int posX, int posY, string text, Color fg, Color bg, Alignment alignment, TextMode mode)
+    public void Print(int posX, int posY, ReadOnlySpan<char> text, Color fg, Color bg, Alignment alignment,
+        TextMode mode)
     {
         if (posY < 0 || posY >= Display.Height) return;
 
@@ -180,7 +181,8 @@ public sealed class AnsiDisplay : IRenderer
 
     public void Draw()
     {
-        CopyToBuffer();
+        // CopyToBuffer();
+        GetAreaToRedraw();
         if (!_modified) return;
 
         GenerateDisplayString();
@@ -216,6 +218,29 @@ public sealed class AnsiDisplay : IRenderer
         }
     }
 
+
+    private Vector _topLeft, _bottomRight;
+    private void GetAreaToRedraw()
+    {
+        _topLeft = ScreenResizer.ScreenSize;
+        _bottomRight = Vector.Zero;
+        
+        for (var x = 0; x < Display.Width; x++)
+        for (var y = 0; y < Display.Height; y++)
+        {
+            if (_currentPixels[x, y] == _lastPixels[x, y]) continue;
+
+            _lastPixels[x, y] = _currentPixels[x, y];
+
+            if (x < _topLeft.X) _topLeft.X = x;
+            if (y < _topLeft.Y) _topLeft.Y = y;
+            if (x > _bottomRight.X) _bottomRight.X = x + 1;
+            if (y > _bottomRight.Y) _bottomRight.Y = y + 1;
+        }
+
+        if (_topLeft != ScreenResizer.ScreenSize) _modified = true;
+    }
+
     private readonly ReadOnlyDictionary<TextMode, string> _ansiTextModes = new(
         new Dictionary<TextMode, string>
         {
@@ -228,8 +253,9 @@ public sealed class AnsiDisplay : IRenderer
             {TextMode.Strikethrough, "\x1b[9m"}
         });
 
-    private void AppendTextMode(TextMode mode, StringBuilder builder)
+    private void AppendTextMode(TextMode mode, StringBuilder builder, StringBuilder debug)
     {
+        debug.Append($"Appending mode {mode}");
         if (mode == TextMode.Default)
         {
             builder.Append(_ansiTextModes[TextMode.Default]);
@@ -257,22 +283,34 @@ public sealed class AnsiDisplay : IRenderer
         var oldStreakPos = new Vector();
         var oldStreakLen = 0;
         var previousIsCleared = false;
+        
+        var debugBuilder = new StringBuilder();
 
         if (_shouldClear)
         {
             _stringBuilder.Append("\x1b[2J");
+            debugBuilder.Append("[clear]\n");
             _shouldClear = false;
         }
 
+        debugBuilder.Append("(1, 1)\n");
         _stringBuilder.Append("\x1b[1;1f");
 
-        for (var y = 0; y < Display.Height; y++)
-        for (var x = 0; x < Display.Width; x++)
+        var lastLine = 0;
+
+        for (var y = _topLeft.Y; y < _bottomRight.Y; y++)
+        for (var x = _topLeft.X; x < _bottomRight.X; x++)
         {
+            var newLine = y != lastLine;
+            lastLine = y;
+
             var pixel = _currentPixels[x, y];
+            var pixelPropertiesChanged = pixel.Fg != lastFg || pixel.Bg != lastBg||
+                                         pixel.Mode != lastMode ||
+                                         (previousIsCleared && pixel.IsEmpty);
 
             // Printing the already gathered pixels if next one has different visual properties
-            if (pixel.Fg != lastFg || pixel.Bg != lastBg || pixel.Mode != lastMode || (previousIsCleared && pixel.IsEmpty))
+            if (pixelPropertiesChanged || newLine)
             {
                 if (_symbolsBuilder.Length != 0)
                 {
@@ -280,14 +318,16 @@ public sealed class AnsiDisplay : IRenderer
                     if (oldStreakPos.Y != y || oldStreakPos.X + oldStreakLen != streakStartPos.X)
                     {
                         _stringBuilder.Append(_coordCache.GetOrAdd(streakStartPos));
+                        debugBuilder.Append($"{streakStartPos} streak start\n");
                     }
 
-                    AppendTextMode(lastMode, _stringBuilder);
+                    AppendTextMode(lastMode, _stringBuilder, debugBuilder);
 
                     // Resetting the colors to clear the pixels
                     if (previousIsCleared)
                     {
                         _stringBuilder.Append("\x1b[0m");
+                        debugBuilder.Append("Clearing streak\n");
                     }
 
                     // Applying the colors for gathered pixels
@@ -295,6 +335,8 @@ public sealed class AnsiDisplay : IRenderer
                     {
                         _stringBuilder.Append(_foregroundColorCache.GetOrAdd(lastFg));
                         _stringBuilder.Append(_backgroundColorCache.GetOrAdd(lastBg));
+
+                        debugBuilder.Append($"FG {lastFg}, BG {lastBg}\n");
                     }
 
                     // Starting new streak of pixels
@@ -302,6 +344,7 @@ public sealed class AnsiDisplay : IRenderer
                     oldStreakPos = streakStartPos;
 
                     _stringBuilder.Append(_symbolsBuilder);
+                    debugBuilder.Append($"'{_symbolsBuilder.ToString()}'");
                     _symbolsBuilder.Clear();
                 }
 
@@ -329,11 +372,11 @@ public sealed class AnsiDisplay : IRenderer
         // If the screen buffer ends while symbolsBuilder still has unprinted content
         if (_symbolsBuilder.Length > 0)
         {
-            var lastPixel = _currentPixels[Display.Width - 1, Display.Height - 1];
+            var lastPixel = _currentPixels[_bottomRight.X, _bottomRight.Y];
 
             _stringBuilder.Append(_coordCache.GetOrAdd(streakStartPos));
 
-            AppendTextMode(lastMode, _stringBuilder);
+            AppendTextMode(lastMode, _stringBuilder, debugBuilder);
 
             _stringBuilder.Append(_foregroundColorCache.GetOrAdd(lastPixel.Fg));
             _stringBuilder.Append(_backgroundColorCache.GetOrAdd(lastPixel.Bg));
@@ -350,6 +393,8 @@ public sealed class AnsiDisplay : IRenderer
 
         _stringBuilder.CopyTo(0, displaySpan, _stringBuilder.Length);
         _stringBuilder.Clear();
+
+        Console.Title = displaySpan.Length.ToString();
 
         _textWriter.Write(displaySpan);
     }

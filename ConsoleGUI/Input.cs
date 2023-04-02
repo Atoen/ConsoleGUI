@@ -258,7 +258,7 @@ public sealed class KeyboardState
     public bool Pressed;
     public KeyModifiers Modifiers;
 
-    public void Assign(ref KeyEventRecord record)
+    internal void Assign(ref KeyEventRecord record)
     {
         Key = (ConsoleKey)record.VirtualKeyCode;
         Pressed = record.KeyDown;
@@ -274,7 +274,7 @@ public sealed class MouseState
     public MouseEventFlags Flags;
     public MouseWheelState Wheel;
 
-    public void Assign(ref MouseEventRecord record)
+    internal void Assign(ref MouseEventRecord record)
     {
         Position = new Vector(record.MousePosition.X, record.MousePosition.Y);
         Buttons = (MouseButton) record.ButtonState;

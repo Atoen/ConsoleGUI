@@ -11,7 +11,7 @@ public interface IRenderer
 
     void DrawLine(Vector pos, Vector direction, int length, Color fg, Color bg, char symbol);
 
-    void Print(int posX, int posY, string text, Color fg, Color bg, Alignment alignment, TextMode mode);
+    void Print(int posX, int posY, ReadOnlySpan<char> text, Color fg, Color bg, Alignment alignment, TextMode mode);
 
     void DrawBuffer(Vector start, Vector end, Pixel[,] buffer);
 
