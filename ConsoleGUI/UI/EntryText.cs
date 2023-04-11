@@ -77,7 +77,7 @@ public class EntryText : Text
         if (Parent == null) return;
 
         if (Animating) _enumerator.MoveNext();
-        
+
         var position = Parent.Center;
 
         var posX = position.X;

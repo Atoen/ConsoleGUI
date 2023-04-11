@@ -62,7 +62,7 @@ public class Text : VisualComponent
     public override void Render()
     {
         if (Parent == null) return;
-        
+
         var position = Parent.Center;
 
         Display.Print(position.X, position.Y, TextInternal, Foreground, Background, Alignment, TextMode);

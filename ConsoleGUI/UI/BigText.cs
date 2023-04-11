@@ -152,7 +152,7 @@ public class BigText : Text
     public override void Render()
     {
         if (Parent == null) return;
-        
+
         var position = Parent.Center;
 
         for (var i = 0; i < Height; i++)

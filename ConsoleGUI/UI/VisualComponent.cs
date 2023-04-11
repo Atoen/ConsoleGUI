@@ -91,7 +91,7 @@ public abstract class VisualComponent : Component, IRenderable
         {
             Display.DrawRect(globalPos with {X = globalPos.X + Size.X - 1}, Size with {X = delta.X}, Color.Red);
         }
-        
+
         if (delta.Y < 0)
         {
             Display.DrawRect(globalPos, Size with {Y = delta.Y}, Color.Red);
@@ -108,15 +108,15 @@ public abstract class VisualComponent : Component, IRenderable
         var oldSize = e.OldSize;
 
         if (newSize.X >= oldSize.X && newSize.Y >= oldSize.Y) return;
-        
+
         var globalPos = GlobalPosition;
 
         var verticalPos = globalPos with { X = globalPos.X + oldSize.X - 1 };
         var horizontalPos = globalPos with { Y = globalPos.Y + oldSize.Y - 1 };
-        
+
         var verticalFragment = oldSize with { X = oldSize.X - newSize.X };
         var horizontalFragment = oldSize with { Y = oldSize.Y - newSize.Y };
-        
+
         Display.ClearRect(verticalPos, verticalFragment);
         Display.ClearRect(horizontalPos, horizontalFragment);
     }

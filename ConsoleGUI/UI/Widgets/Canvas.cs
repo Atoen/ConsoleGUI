@@ -22,7 +22,6 @@ public class Canvas : ContentControl
     public Color EmptyColor { get; set; } = Color.White;
 
     public bool InResizeMode { get; private set; }
-    private Vector _resizeStartPos;
     protected bool DisplayingGrip;
 
     protected bool IsCorrectDrawPosition(Vector pos)
@@ -41,20 +40,17 @@ public class Canvas : ContentControl
 
     private void GripResize(MouseEventArgs e)
     {
-        var sizeDifference = e.CursorPosition - _resizeStartPos;
+        var sizeDifference = e.RelativeCursorPosition - GripPosition;
 
         if (sizeDifference == Vector.Zero) return;
 
         var newSize = Buffer.Size + sizeDifference;
-
         newSize = newSize.ExpandTo(MinBufferSize);
-
+        
         if (newSize == Buffer.Size) return;
 
         Buffer.Resize(newSize, EmptyColor);
         Resize();
-
-        _resizeStartPos = e.CursorPosition;
     }
 
     private void EnterResizeMode(MouseEventArgs e)
@@ -62,7 +58,6 @@ public class Canvas : ContentControl
         if (!CanGripResize) return;
 
         InResizeMode = true;
-        _resizeStartPos = e.CursorPosition;
     }
 
     protected override void OnMouseEnter(MouseEventArgs e)

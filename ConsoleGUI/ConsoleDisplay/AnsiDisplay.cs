@@ -67,9 +67,9 @@ public sealed class AnsiDisplay : IRenderer
         while (distance < length)
         {
             _currentPixels[pos.X, pos.Y].Symbol = symbol;
-            
+
             if (fg != Color.Empty) _currentPixels[pos.X, pos.Y].Fg = fg;
-            if (bg != Color.Empty)_currentPixels[pos.X, pos.Y].Bg = bg;
+            if (bg != Color.Empty) _currentPixels[pos.X, pos.Y].Bg = bg;
 
             pos += direction;
             distance++;
@@ -230,9 +230,8 @@ public sealed class AnsiDisplay : IRenderer
             {TextMode.Strikethrough, "\x1b[9m"}
         });
 
-    private void AppendTextMode(TextMode mode, StringBuilder builder, StringBuilder debug)
+    private void AppendTextMode(TextMode mode, StringBuilder builder)
     {
-        debug.Append($"Appending mode {mode}");
         if (mode == TextMode.Default)
         {
             builder.Append(_ansiTextModes[TextMode.Default]);
@@ -254,30 +253,25 @@ public sealed class AnsiDisplay : IRenderer
         // Current printing values
         var currentFg =  _currentPixels[0, 0].Fg;
         var currentBg = _currentPixels[0, 0].Bg;
-        var currentMode = TextMode.Default;
-        
+        var currentMode = _currentPixels[0, 0].Mode;
+
         // Values of pixel before print
-        var lastFg = Color.Empty;
-        var lastBg = Color.Empty;
         var lastMode = TextMode.Default;
-        
+
         // starting position for printing the gathered pixel symbols
         var streakStartPos = new Vector();
         var oldStreakPos = new Vector();
         var oldStreakLen = 0;
         var previousIsCleared = false;
-        
-        var debugBuilder = new StringBuilder();
 
         if (_shouldClear)
         {
             _stringBuilder.Append("\x1b[2J");
-            debugBuilder.Append("[clear]\n");
             _shouldClear = false;
         }
-        
-        _stringBuilder.Append("\x1b[0;0f");
-        
+
+        _stringBuilder.Append("\x1b[1;1f");
+
         var lastLine = 0;
 
         for (var y = 0; y < Display.Height; y++)
@@ -285,12 +279,12 @@ public sealed class AnsiDisplay : IRenderer
         {
             var newLine = y != lastLine;
             lastLine = y;
-            
+
             var pixel = _currentPixels[x, y];
-            var pixelPropertiesChanged = pixel.Fg != lastFg || pixel.Bg != lastBg ||
+            var pixelPropertiesChanged = pixel.Fg != currentFg || pixel.Bg != currentBg ||
                                          pixel.Mode != currentMode ||
                                          (previousIsCleared && pixel.IsEmpty);
-        
+
             // Printing the already gathered pixels if next one has different visual properties
             if (pixelPropertiesChanged || newLine)
             {
@@ -300,27 +294,26 @@ public sealed class AnsiDisplay : IRenderer
                     if (oldStreakPos.Y != y || oldStreakPos.X + oldStreakLen != streakStartPos.X)
                     {
                         _stringBuilder.Append(_coordCache.GetOrAdd(streakStartPos));
-                        debugBuilder.Append($"{streakStartPos} streak start\n");
                     }
-                    
+
                     if (pixel.Mode != currentMode)
                     {
-                        AppendTextMode(lastMode, _stringBuilder, debugBuilder);
+                        AppendTextMode(lastMode, _stringBuilder);
                         currentMode = lastMode;
                         lastMode = pixel.Mode;
                     }
-                    
+
                     // Resetting the colors to clear the pixels
                     if (previousIsCleared)
                     {
                         _stringBuilder.Append("\x1b[0m");
                     }
-                    
+
                     // Applying the colors for gathered pixels
                     else
                     {
-                        _stringBuilder.Append(_foregroundColorCache.GetOrAdd(lastFg));
-                        _stringBuilder.Append(_backgroundColorCache.GetOrAdd(lastBg));
+                        _stringBuilder.Append(_foregroundColorCache.GetOrAdd(currentFg));
+                        _stringBuilder.Append(_backgroundColorCache.GetOrAdd(currentBg));
                     }
 
                     // Starting new streak of pixels
@@ -328,26 +321,25 @@ public sealed class AnsiDisplay : IRenderer
                     oldStreakPos = streakStartPos;
 
                     _stringBuilder.Append(_symbolsBuilder);
-                    debugBuilder.Append($"'{_symbolsBuilder.ToString()}'");
                     _symbolsBuilder.Clear();
                 }
-                
-                lastFg = pixel.Fg;
-                lastBg = pixel.Bg;
+
+                currentFg = pixel.Fg;
+                currentBg = pixel.Bg;
             }
-        
+
             // Setting the start pos of the collected pixel symbols when collecting the first one
             if (_symbolsBuilder.Length == 0)
             {
                 streakStartPos.X = x;
                 streakStartPos.Y = y;
             }
-        
+
             // Collecting the pixels with same colors together
             if (!pixel.IsEmpty) _symbolsBuilder.Append(pixel.Symbol);
-        
+
             previousIsCleared = pixel.IsCleared;
-        
+
             // Marking the pixel as empty to not draw it again unnecessarily
             if (pixel.IsCleared) _currentPixels[x, y] = Pixel.Empty;
         }
@@ -359,7 +351,7 @@ public sealed class AnsiDisplay : IRenderer
 
             _stringBuilder.Append(_coordCache.GetOrAdd(streakStartPos));
 
-            AppendTextMode(lastMode, _stringBuilder, debugBuilder);
+            AppendTextMode(lastMode, _stringBuilder);
 
             _stringBuilder.Append(_foregroundColorCache.GetOrAdd(lastPixel.Fg));
             _stringBuilder.Append(_backgroundColorCache.GetOrAdd(lastPixel.Bg));
@@ -372,13 +364,19 @@ public sealed class AnsiDisplay : IRenderer
         // Resetting the console style after full draw
         _stringBuilder.Append("\x1b[0m");
 
-        Span<char> displaySpan = stackalloc char[_stringBuilder.Length];
+        var dataRead = 0;
 
-        _stringBuilder.CopyTo(0, displaySpan, _stringBuilder.Length);
+        Span<char> span = stackalloc char[1000];
+        while (dataRead < _stringBuilder.Length)
+        {
+            var chunkSize = Math.Min(_stringBuilder.Length - dataRead, 1000);
+            _stringBuilder.CopyTo(dataRead, span, chunkSize);
+
+            _textWriter.Write(span);
+            span.Clear();
+            dataRead += chunkSize;
+        }
+
         _stringBuilder.Clear();
-
-        Console.Title = displaySpan.Length.ToString();
-
-        _textWriter.Write(displaySpan);
     }
 }
