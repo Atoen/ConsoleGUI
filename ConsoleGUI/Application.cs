@@ -4,11 +4,8 @@ namespace ConsoleGUI;
 
 public static class Application
 {
-    public static void Start(DisplayMode displayMode = DisplayMode.Auto)
+    static Application()
     {
-        Display.Init(displayMode);
-        Input.Init();
-
         Console.CancelKeyPress += delegate
         {
             Input.Stop();
@@ -16,7 +13,22 @@ public static class Application
             Display.ResetStyle();
 
             DisplayUsedMemory();
+
+            Environment.Exit(Environment.ExitCode);
         };
+
+        AppDomain.CurrentDomain.ProcessExit += delegate
+        {
+            ApplicationExit?.Invoke(null, EventArgs.Empty);
+        };
+    }
+
+    public static event EventHandler? ApplicationExit;
+
+    public static void Start(DisplayMode displayMode = DisplayMode.Auto)
+    {
+        Display.Init(displayMode);
+        Input.Init();
     }
 
     private static void DisplayUsedMemory()
@@ -34,7 +46,6 @@ public static class Application
         Console.WriteLine(
             $"Memory usage - Physical: {peakPhysical / bytesPerMByte:.00}MB, Paged: {peakPaged / bytesPerMByte:.00}MB");
 
-        Environment.Exit(Environment.ExitCode);
     }
 
     public static void Exit(Exception? exception = null)

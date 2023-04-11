@@ -1,5 +1,4 @@
 ﻿using ConsoleGUI.ConsoleDisplay;
-using ConsoleGUI.UI.Events;
 using ConsoleGUI.Visuals;
 
 namespace ConsoleGUI.UI.Widgets;
@@ -15,7 +14,7 @@ public partial class Grid
     protected override void OnPositionChanged(object sender, PositionChangedEventArgs e)
     {
         _shouldRegenerateLines = true;
-        
+
         base.OnPositionChanged(sender, e);
     }
 

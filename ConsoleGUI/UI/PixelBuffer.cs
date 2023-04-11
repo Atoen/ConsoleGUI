@@ -79,7 +79,7 @@ public class PixelBuffer : IEnumerable<Pixel>
         {
             _x++;
             if (_x < _buffer.Size.X) return _y < _buffer.Size.Y;
-            
+
             _x = 0.RoundTo(1);
             _y++;
 

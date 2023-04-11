@@ -1,5 +1,4 @@
-﻿using ConsoleGUI.ConsoleDisplay;
-using ConsoleGUI.Utils;
+﻿using ConsoleGUI.Utils;
 using ConsoleGUI.Visuals;
 
 namespace ConsoleGUI.UI.Widgets;
@@ -315,6 +314,11 @@ public partial class Grid : Control
 
         Width = Columns.TotalSize + InnerPadding.X * 2;
         Height = Rows.TotalSize + InnerPadding.Y * 2;
+
+        // var newWidth = Columns.TotalSize + InnerPadding.X * 2;
+        // var newHeight = Rows.TotalSize + InnerPadding.Y * 2;
+        //
+        // Size = MinSize.ExpandTo(new Vector(newWidth, newHeight));
 
         AdjustContentPosition();
     }

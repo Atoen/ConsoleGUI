@@ -5,7 +5,7 @@ namespace ConsoleGUI.UI.Widgets;
 
 public class Entry : ContentControl
 {
-    public Entry() => _text = new EntryText(nameof(Entry)) {Parent = this};
+    public Entry() => _text = new EntryText(nameof(Entry)) { Parent = this };
 
     private EntryText _text;
     public EntryText Text
@@ -26,7 +26,7 @@ public class Entry : ContentControl
         }
     }
 
-    public EntryMode InputMode { get; set; } = EntryMode.All;
+    public TextEntryMode InputMode { get; set; } = TextEntryMode.All;
     public TextMode TextModeWhileTyping { get; set; } = TextMode.Italic;
 
     public int MaxTextLenght { get; set; }
@@ -37,9 +37,9 @@ public class Entry : ContentControl
     {
         return InputMode switch
         {
-            EntryMode.Alphanumeric => char.IsLetterOrDigit(symbol),
-            EntryMode.Letters => char.IsLetter(symbol),
-            EntryMode.Digits => char.IsDigit(symbol),
+            TextEntryMode.Alphanumeric => char.IsLetterOrDigit(symbol),
+            TextEntryMode.Letters => char.IsLetter(symbol),
+            TextEntryMode.Digits => char.IsDigit(symbol),
             _ => !char.IsControl(symbol)
         };
     }
@@ -69,7 +69,7 @@ public class Entry : ContentControl
         Text.Animating = false;
         Text.TextMode = TextMode.Default;
 
-        if (InputMode != EntryMode.Digits) return;
+        if (InputMode != TextEntryMode.Digits) return;
 
         if (string.IsNullOrWhiteSpace(Text.String)) Text.String = "0";
     }
@@ -85,7 +85,7 @@ public class Entry : ContentControl
         if (CheckIfAllowed(e.Char) && Text.Length < MaxTextLenght)
         {
             // Numbers should not be preceded by the default '0'
-            if (Text.String == "0" && InputMode == EntryMode.Digits)
+            if (Text.String == "0" && InputMode == TextEntryMode.Digits)
             {
                 Text.String = e.Char.ToString();
             }
@@ -127,7 +127,7 @@ public class Entry : ContentControl
 
     public override void Resize()
     {
-        MinSize = InnerPadding * 2 + (MaxTextLenght + 1, 1);
+        MinSize = MinSize.ExpandTo(InnerPadding * 2 + (MaxTextLenght + 1, 1));
 
         ApplyResizing();
 
@@ -135,7 +135,7 @@ public class Entry : ContentControl
     }
 }
 
-public enum EntryMode
+public enum TextEntryMode
 {
     All,
     Alphanumeric,

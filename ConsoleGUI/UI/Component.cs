@@ -121,7 +121,7 @@ public abstract class Component
         }
     }
 
-    public Vector MinSize { get; protected set; }
+    public Vector MinSize { get; set; }
 
     protected void ApplyResizing()
     {

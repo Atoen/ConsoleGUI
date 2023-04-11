@@ -3,7 +3,7 @@ using Microsoft.Win32.SafeHandles;
 
 namespace ConsoleGUI;
 
-internal static partial class NativeConsole
+public static partial class NativeConsole
 {
     [LibraryImport("kernel32.dll")]
     public static partial nint GetStdHandle(uint nStdHandle);
@@ -113,4 +113,28 @@ internal static partial class NativeConsole
 
     public const uint StdHandleOut = unchecked((uint) -11),
         StdHandleIn = unchecked((uint) -10);
+    
+    [LibraryImport("user32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    public static partial bool OpenClipboard(IntPtr hWndNewOwner);
+
+    [LibraryImport("user32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    public static partial bool CloseClipboard();
+
+    [LibraryImport("user32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    public static partial bool EmptyClipboard();
+
+    [LibraryImport("user32.dll")]
+    public static partial IntPtr SetClipboardData(uint uFormat, IntPtr hMem);
+
+    [LibraryImport("user32.dll")]
+    public static partial IntPtr GetClipboardData(uint uFormat);
+
+    [LibraryImport("user32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    public static partial bool IsClipboardFormatAvailable(uint format);
+
+    public const uint ClipboardUnicodeFormat = 13;
 }

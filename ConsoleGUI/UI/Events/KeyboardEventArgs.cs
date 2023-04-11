@@ -18,17 +18,19 @@ public class KeyboardEventArgs : InputEventArgs
     public char Char { get; protected set; }
     public bool IsReleased { get; protected set; }
     public bool IsPressed { get; protected set; }
+    public KeyModifiers Modifiers { get; protected set; }
 
     public override void Set(Control source, object inputState)
     {
         OriginalSource = source;
         Source = source;
 
-        var keyboardState = (KeyboardState)inputState;
+        var keyboardState = (KeyboardState) inputState;
 
         Key = keyboardState.Key;
         Char = keyboardState.Char;
         IsPressed = keyboardState.Pressed;
         IsReleased = !IsPressed;
+        Modifiers = keyboardState.Modifiers;
     }
 }

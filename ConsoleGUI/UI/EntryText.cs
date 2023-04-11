@@ -6,13 +6,9 @@ namespace ConsoleGUI.UI;
 
 public class EntryText : Text
 {
-    public EntryText(string text) : this(text, Color.Black)
-    {
-    }
+    public EntryText(string text) : this(text, Color.Black) { }
 
-    public EntryText(string text, Color foreground) : this(text, foreground, Color.Empty)
-    {
-    }
+    public EntryText(string text, Color foreground) : this(text, foreground, Color.Empty) { }
 
     public EntryText(string text, Color foreground, Color background) : base(text, foreground, background)
     {
@@ -78,7 +74,13 @@ public class EntryText : Text
 
         if (Animating) _enumerator.MoveNext();
 
-        var position = Parent.Center;
+        var position = Alignment switch
+        {
+            Alignment.Left => Parent.Center - (Parent.InnerWidth / 2, 0),
+            Alignment.Right => Parent.Center + (Parent.InnerWidth / 2, 0),
+            Alignment.Center => Parent.Center,
+            _ => throw new ArgumentOutOfRangeException()
+        };
 
         var posX = position.X;
         if (Length % 2 != 0 && Animating) posX--;
@@ -87,13 +89,13 @@ public class EntryText : Text
 
         if (!_displayingCaret) return;
 
-        var startX = Alignment switch
+        var caretX = Alignment switch
         {
             Alignment.Left => position.X,
             Alignment.Right => position.X - Length + 1,
             _ => position.X - (Length + 1) / 2
         };
 
-        Display.Draw(startX + TextInternal.Length, position.Y, Caret, Foreground, Background);
+        Display.Draw(caretX + TextInternal.Length, position.Y, Caret, Foreground, Background);
     }
 }
