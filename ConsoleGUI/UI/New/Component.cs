@@ -1,4 +1,6 @@
-﻿using System.Runtime.CompilerServices;
+﻿using System.Reflection;
+using System.Runtime.CompilerServices;
+using ConsoleGUI.ConsoleDisplay;
 
 namespace ConsoleGUI.UI.New;
 
@@ -79,13 +81,13 @@ public abstract class Component
     public int Width
     {
         get => Size.X;
-        set => SetField(ref _size, (value, Height));
+        set => SetField(ref _size, (value, Height), ValidateSize);
     }
 
     public int Height
     {
         get => Size.Y;
-        set => SetField(ref _size, (Width, value));
+        set => SetField(ref _size, (Width, value), ValidateSize);
     }
 
     public Vector Position
@@ -106,19 +108,23 @@ public abstract class Component
         set => SetField(ref _globalPosition, value - Size / 2);
     }
 
-    public object? GetProperty(string propertyName)
+    private readonly Dictionary<string, PropertyInfo> _propertyCache = new();
+
+    private PropertyInfo GetPropertyInfo(string propertyName)
     {
-        var propInfo = GetType().GetProperty(propertyName);
+        if (_propertyCache.TryGetValue(propertyName, out var propInfo)) return propInfo;
+
+        propInfo = GetType().GetProperty(propertyName);
 
         if (propInfo is null) throw new ArgumentException($"{this} does not contain property {propertyName}.");
-        
-        return propInfo.GetValue(this);
+        _propertyCache.Add(propertyName, propInfo);
+
+        return propInfo;
     }
 
-    public T GetProperty<T>(string propertyName)
+    internal T GetProperty<T>(string propertyName)
     {
-        var propInfo = GetType().GetProperty(propertyName);
-        if (propInfo is null) throw new ArgumentException($"{this} does not contain property {propertyName}.");
+        var propInfo = GetPropertyInfo(propertyName);
 
         if (propInfo.PropertyType != typeof(T))
         {
@@ -128,6 +134,18 @@ public abstract class Component
         var value = propInfo.GetValue(this);
 
         return (T) value!;
+    }
+
+    internal void SetProperty<T>(string propertyName, T value)
+    {
+        var propInfo = GetPropertyInfo(propertyName);
+
+        if (propInfo.PropertyType != typeof(T))
+        {
+            throw new ArgumentException($"Incorrect type provided for property {propertyName}. Actual type: {propInfo.PropertyType}");
+        }
+
+        propInfo.SetValue(this, value);
     }
 
     private bool _minSizeSet;
@@ -148,7 +166,7 @@ public abstract class Component
     private State _state = State.Default;
 
     #endregion
-    
+
     public bool ContainsPoint(Vector pos)
     {
         return pos.X >= GlobalPosition.X && pos.X < GlobalPosition.X + Width &&
@@ -213,11 +231,12 @@ public abstract class Component
         if (Parent is null) GlobalPosition = newValue;
         else GlobalPosition = Position + Parent.GlobalPosition;
     }
-    
+
     private void OnGlobalPositionChanged(Vector oldValue, Vector newValue)
     {
         if (Parent is null) Position = newValue;
         else Position = newValue - Parent.GlobalPosition;
     }
 }
+
 

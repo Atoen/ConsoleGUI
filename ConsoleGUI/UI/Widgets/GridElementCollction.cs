@@ -134,7 +134,7 @@ public sealed class GridElementCollection<T> : ObservableList<T> where T : GridL
             {
                 var biggest = slice.OrderBy(e => e.Size).Last();
                 biggest.Size--;
-            
+
                 currentSize--;
             }
         }

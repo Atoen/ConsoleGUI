@@ -42,7 +42,7 @@ public abstract class UiElement : VisualComponent
     public bool ShowBorder { get; set; }
     public BorderStyle BorderStyle { get; set; } = BorderStyle.Single;
     public Color BorderColor { get; set; } = Color.White;
-    
+
     public Vector InnerPadding
     {
         get => _innerPadding;
@@ -69,7 +69,7 @@ public abstract class UiElement : VisualComponent
 
     public int InnerWidth => Width - InnerPadding.X * 2;
     public int InnerHeight => Height - InnerPadding.Y * 2;
-    
+
     private Vector _innerPadding = (1, 1);
     private Vector _outerPadding = Vector.Zero;
     private Vector _requestedContentSpace;
@@ -94,16 +94,33 @@ public abstract class UiElement : VisualComponent
     {
         if (newSize.X >= oldSize.X && newSize.Y >= oldSize.Y) return;
 
-        var globalPos = GlobalPosition;
+        Display.ClearRect(GlobalPosition, oldSize);
+    }
 
-        var verticalPos = globalPos with { X = globalPos.X + oldSize.X - 1 };
-        var horizontalPos = globalPos with { Y = globalPos.Y + oldSize.Y - 1 };
+    private void TryToExpandToRequestedSize()
+    {
+        if (Width < RequestedContentSpace.X) Width = RequestedContentSpace.X;
+        if (Height < RequestedContentSpace.Y) Height = RequestedContentSpace.Y;
+    }
 
-        var verticalFragment = oldSize with { X = oldSize.X - newSize.X };
-        var horizontalFragment = oldSize with { Y = oldSize.Y - newSize.Y };
+    private void Resize()
+    {
+        switch (ResizeMode)
+        {
+            case ResizeMode.Grow:
+                Size = Size.ExpandTo(RequestedContentSpace + InnerPadding * 2);
+                break;
 
-        Display.ClearRect(verticalPos, verticalFragment);
-        Display.ClearRect(horizontalPos, horizontalFragment);
+            case ResizeMode.Stretch:
+                Size = RequestedContentSpace + InnerPadding * 2;
+                break;
+            case ResizeMode.Manual:
+                break;
+            case ResizeMode.Expand:
+                break;
+            default:
+                throw new ArgumentOutOfRangeException();
+        }
     }
 
     private void OnPropertyChanged(object sender, PropertyChangedEventArgs args)
@@ -124,9 +141,14 @@ public abstract class UiElement : VisualComponent
             case nameof(GlobalPosition):
                 ClearOnMove((Vector) oldValue! - (Vector) newValue!);
                 break;
-            
+
             case nameof(RequestedContentSpace):
-                Size = RequestedContentSpace + InnerPadding * 2;
+                Resize();
+                break;
+
+            case nameof(MaxSize):
+            case nameof(MinSize):
+                TryToExpandToRequestedSize();
                 break;
         }
     }

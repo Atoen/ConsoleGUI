@@ -43,7 +43,7 @@ public abstract class Component
     public Vector InnerSize => Size - InnerPadding * 2;
     public int InnerWidth => Width - InnerPadding.X * 2;
     public int InnerHeight => Height - InnerPadding.Y * 2;
-    
+
     public Vector MinSize { get; set; }
     public Vector MaxSize { get; set; }
 
@@ -125,7 +125,7 @@ public abstract class Component
             }
         }
     }
-    
+
     protected void ApplyResizing()
     {
         Size = ResizeMode switch

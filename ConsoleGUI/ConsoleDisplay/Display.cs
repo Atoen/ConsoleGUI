@@ -33,7 +33,7 @@ public static class Display
 
     private static readonly List<IRenderable> Renderables = new();
     private static readonly List<IRenderable> RemovedRenderables = new();
-    
+
     private static readonly List<VisualComponent> Visuals = new();
     private static readonly List<VisualComponent> VisualsToRemove = new();
 
@@ -95,7 +95,7 @@ public static class Display
         RemovedRenderables.Add(renderable);
         LockSlim.ExitWriteLock();
     }
-    
+
     internal static void AddToRenderList(VisualComponent visual)
     {
         // renderable.ZIndexChanged += RenderableOnZIndexChanged;

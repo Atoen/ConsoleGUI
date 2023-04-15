@@ -69,7 +69,7 @@ public static class Input
         OldControls.Remove(oldControl);
         LockSlim.ExitWriteLock();
     }
-    
+
     internal static void Register(Control control)
     {
         LockSlim.EnterWriteLock();
@@ -249,7 +249,7 @@ public static class Input
         foreach (var control in Controls)
         {
             if (!control.IsFocused) continue;
-        
+
             SendKeyboardEvent(control);
             break;
         }

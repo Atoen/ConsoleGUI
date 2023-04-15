@@ -131,7 +131,7 @@ public partial class Grid : OldControl
             Resize();
         };
     }
-    
+
     private void ChildrenOnElementChanged(object? sender, CollectionChangedEventArgs<OldControl> e)
     {
         if (e.ChangeType == ChangeType.Remove && e.Element.Parent == this)
@@ -286,10 +286,10 @@ public partial class Grid : OldControl
         if (ResizeMode == ResizeMode.Expand)
         {
             Expand();
-            
+
             Columns.FitSize(Display.Width - 2 * (InnerPadding.X + OuterPadding.X));
             Rows.FitSize(Display.Height - 2 * (InnerPadding.Y + OuterPadding.Y));
-            
+
             foreach (var entry in _entries)
             {
                 if (entry is {RefTarget: not null, MultiCell: true})
@@ -305,7 +305,7 @@ public partial class Grid : OldControl
         {
             ResizeStretch();
         }
-        
+
         AdjustContentPosition();
 
     }

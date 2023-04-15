@@ -115,7 +115,7 @@ internal static partial class NativeConsole
 
     public const uint StdHandleOut = unchecked((uint) -11),
         StdHandleIn = unchecked((uint) -10);
-    
+
     [LibraryImport("user32.dll")]
     [return: MarshalAs(UnmanagedType.Bool)]
     public static partial bool OpenClipboard(nint hWndNewOwner);

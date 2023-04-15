@@ -5,15 +5,15 @@ public class Label : Control
     public Label()
     {
         _text = new Text(nameof(Label)) {Parent = this};
-        _text.PropertyChanged += TextOnPropertyChanged;
-        
+
         Focusable = false;
+        PropertyChanged += OnPropertyChanged;
     }
 
     public Text Text
     {
         get => _text;
-        set => SetField(ref _text, value, onChanged: OnTextChanged);
+        set => SetField(ref _text, value);
     }
 
     public bool AllowTextOverflow
@@ -22,25 +22,47 @@ public class Label : Control
         set => SetField(ref _allowTextOverflow, value);
     }
 
-    private void OnTextChanged(Text oldValue, Text newValue)
+    public Vector TextOffset
     {
-        oldValue.PropertyChanged -= TextOnPropertyChanged;
-        oldValue.Delete();
-        
-        newValue.Parent = this;
-        newValue.PropertyChanged += TextOnPropertyChanged;
+        get => _textOffset;
+        set => SetField(ref _textOffset, value);
     }
 
-    private void TextOnPropertyChanged(object sender, PropertyChangedEventArgs args)
+    private void OnPropertyChanged(object sender, PropertyChangedEventArgs args)
     {
-        if (args.PropertyName == nameof(Size))
+        switch (args.PropertyName)
         {
-            RequestedContentSpace = (Vector) args.NewValue!;
+            case nameof(Text):
+                ReplaceText(args);
+                break;
+
+            case nameof(Position):
+            case nameof(GlobalPosition):
+            case nameof(TextOffset):
+            case nameof(Size):
+            case nameof(Width):
+            case nameof(Height):
+                Text.Center = Center + TextOffset;
+                break;
         }
+    }
+
+    private void ReplaceText(PropertyChangedEventArgs args)
+    {
+        var oldText = (Text) args.OldValue!;
+        var newText = (Text) args.NewValue!;
+
+        oldText.Delete();
+
+        newText.Parent = this;
+        newText.Center = Center;
+
+        RequestedContentSpace = newText.Size;
     }
 
     private Text _text;
     private bool _allowTextOverflow;
+    private Vector _textOffset = Vector.Zero;
 
     internal override void Clear()
     {

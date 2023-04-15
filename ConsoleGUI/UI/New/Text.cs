@@ -3,13 +3,15 @@ using ConsoleGUI.UI.Widgets;
 
 namespace ConsoleGUI.UI.New;
 
-[DebuggerDisplay("Text {String}, Fg: {Foreground.ToString()}, Bg: {Background.ToString()}")]
+[DebuggerDisplay("Text {Content}, Fg: {Foreground.ToString()}, Bg: {Background.ToString()}")]
 public class Text : VisualComponent
 {
     public Text(string text)
     {
-        _string = text;
+        _content = text;
         Size = new Vector(Length, 1);
+
+        PropertyChanged += OnPropertyChanged;
     }
 
     public Color Foreground { get; set; } = Color.Black;
@@ -18,18 +20,13 @@ public class Text : VisualComponent
     public TextMode TextMode { get; set; } = TextMode.Default;
     public Alignment Alignment { get; set; } = Alignment.Center;
 
-    public string String
+    public string Content
     {
-        get => _string;
-        set => SetField(ref _string, value, onChanged: OnStringChanged);
+        get => _content;
+        set => SetField(ref _content, value);
     }
 
-    private void OnStringChanged(string oldValue, string newValue)
-    {
-        Size = new Vector(newValue.Length, 1);
-    }
-
-    public int Length => String.Length;
+    public int Length => Content.Length;
 
     public override bool Visible
     {
@@ -42,32 +39,51 @@ public class Text : VisualComponent
     }
 
     private bool _visible = true;
-    private string _string;
+    private string _content;
+    private int _visualLength;
+
+    private void OnPropertyChanged(object sender, PropertyChangedEventArgs args)
+    {
+        switch (args.PropertyName)
+        {
+            case nameof(Content):
+                Size = new Vector(((string) args.NewValue!).Length, 1);
+                break;
+
+            case nameof(MaxSize):
+            case nameof(MinSize):
+                Size = new Vector(Length, 1);
+                break;
+
+            case nameof(Size):
+                _visualLength = Width;
+                Parent?.SetProperty("RequestedContentSpace", Size);
+                if (Parent is not null) Center = Parent.Center;
+                break;
+        }
+    }
 
     internal override void Render()
     {
         if (Parent is null) return;
 
-        var shouldTrim = !Parent.GetProperty<bool>("AllowTextOverflow");
+        var displaySpan = Content.AsSpan();
 
-        ReadOnlySpan<char> displaySpan;
+        var sliceLength = Math.Min(_visualLength, Length);
 
-        if (shouldTrim)
+        var parentAllowsOverflow = Parent.GetProperty<bool>("AllowTextOverflow");
+        var parentAllowedSpace = Parent.GetProperty<Vector>("InnerSize");
+
+        if (!parentAllowsOverflow)
         {
-            var allowedSpace = Parent.GetProperty<Vector>("InnerSize");
-            if (allowedSpace.X < 1 || allowedSpace.Y < 1) return;
-            
-            displaySpan = String.AsSpan(0, Math.Min(allowedSpace.X, Length));
-        }
-        else
-        {
-            displaySpan = String.AsSpan();
-        }
-        
+            if (parentAllowedSpace.Y < 1) return;
 
-        var position = Parent.Center;
+            sliceLength = Math.Min(sliceLength, parentAllowedSpace.X);
+        }
 
-        Display.Print(position.X, position.Y, displaySpan, Foreground, Background, Alignment);
+        var visibleSlice = displaySpan[..sliceLength];
+
+        Display.Print(Center.X, Center.Y, visibleSlice, Foreground, Background, Alignment);
     }
 
     internal override void Clear()
@@ -88,5 +104,5 @@ public class Text : VisualComponent
         base.Delete();
     }
 
-    public override string ToString() => String;
+    public override string ToString() => Content;
 }

@@ -42,7 +42,7 @@ public abstract class Control : UiElement
     internal override void Render()
     {
         base.Render();
-        
+
         // Focus border should not override normal border
         if (IsFocused && ShowFocusBorder && !ShowBorder)
         {
@@ -55,7 +55,7 @@ public abstract class Control : UiElement
         Input.Unregister(this);
         base.Delete();
     }
-    
+
     public event MouseEventHandler? MouseEnter;
     public event MouseEventHandler? MouseLeave;
     public event MouseEventHandler? MouseDown;
@@ -72,7 +72,7 @@ public abstract class Control : UiElement
 
     public event FocusEventHandler? GotFocus;
     public event FocusEventHandler? LostFocus;
-    
+
     internal void SendMouseEvent(MouseEventType mouseEventType, MouseEventArgs e)
     {
         switch (mouseEventType)
@@ -126,7 +126,7 @@ public abstract class Control : UiElement
         e.Source = this;
         (Parent as Control)?.SendMouseEvent(mouseEventType, e);
     }
-    
+
     internal void SendKeyboardEvent(KeyboardEventType keyboardEventType, KeyboardEventArgs e)
     {
         if (keyboardEventType == KeyboardEventType.KeyDown)
