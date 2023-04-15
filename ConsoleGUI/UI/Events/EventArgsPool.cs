@@ -1,4 +1,6 @@
-﻿namespace ConsoleGUI.UI.Events;
+﻿using ConsoleGUI.UI.New;
+
+namespace ConsoleGUI.UI.Events;
 
 internal class EventArgsPool<T> where T : RoutedEventArgs, new()
 {

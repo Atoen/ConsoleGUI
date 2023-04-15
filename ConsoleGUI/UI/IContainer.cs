@@ -4,5 +4,5 @@ namespace ConsoleGUI.UI;
 
 public interface IContainer
 {
-    public ObservableList<Control> Children { get; }
+    public ObservableList<OldControl> Children { get; }
 }

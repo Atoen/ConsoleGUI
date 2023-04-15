@@ -85,7 +85,9 @@ internal static partial class NativeConsole
 
     public struct WindowState
     {
+#pragma warning disable CS0649
         public SCoord Size;
+#pragma warning restore CS0649
 
         public int Width => Size.X;
         public int Height => Size.Y;

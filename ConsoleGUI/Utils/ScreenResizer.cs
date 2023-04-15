@@ -1,10 +1,13 @@
 ﻿using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
+using ConsoleGUI.ConsoleDisplay;
 
 namespace ConsoleGUI.Utils;
 
 internal static class ScreenResizer
 {
+    public static event EventHandler<Vector>? ScreenResized;
+
     public static int ResizeRetryAttempts { get; set; } = 1;
     public static int ResizeFails { get; private set; }
 
@@ -47,7 +50,12 @@ internal static class ScreenResizer
         var windowWidth = Console.WindowWidth;
         var windowHeight = Console.WindowHeight;
 
-        ScreenSize = new Vector(windowWidth, windowHeight);
+        var newScreenSize = new Vector(windowWidth, windowHeight);
+
+        if (newScreenSize == ScreenSize) return;
+        
+        ScreenResized?.Invoke(null, newScreenSize);
+        ScreenSize = newScreenSize;
 
         var bufferWidth = Console.BufferWidth;
         var bufferHeight = Console.BufferHeight;
@@ -84,9 +92,4 @@ internal static class ScreenResizer
         BufferSize = newBufferSize;
         return true;
     }
-}
-
-public static class IntExtensions
-{
-    public static int RoundTo(this int num, int step) => (int) Math.Ceiling((double) num / step) * step;
 }

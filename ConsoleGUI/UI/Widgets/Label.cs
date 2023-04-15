@@ -1,6 +1,6 @@
 ﻿namespace ConsoleGUI.UI.Widgets;
 
-public class Label : ContentControl
+public class Label : ContentOldControl
 {
     public Label()
     {
@@ -15,7 +15,7 @@ public class Label : ContentControl
         set
         {
             _text.Remove();
-            _text.Parent = null!;
+            _text.Parent = null;
 
             _text = value;
             _text.Parent = this;
@@ -34,7 +34,7 @@ public class Label : ContentControl
         base.Clear();
     }
 
-    public override void Resize()
+    internal override void Resize()
     {
         MinSize = InnerPadding * 2 + _text.Size;
 

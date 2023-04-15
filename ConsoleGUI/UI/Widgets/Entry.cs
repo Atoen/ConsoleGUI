@@ -3,7 +3,7 @@ using ConsoleGUI.UI.Events;
 
 namespace ConsoleGUI.UI.Widgets;
 
-public class Entry : ContentControl
+public class Entry : ContentOldControl
 {
     public Entry() => _text = new EntryText(nameof(Entry)) { Parent = this };
 
@@ -125,7 +125,7 @@ public class Entry : ContentControl
         base.OnLostFocus(e);
     }
 
-    public override void Resize()
+    internal override void Resize()
     {
         MinSize = MinSize.ExpandTo(InnerPadding * 2 + (MaxTextLenght + 1, 1));
 

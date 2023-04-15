@@ -2,7 +2,7 @@
 
 namespace ConsoleGUI.UI.Widgets;
 
-public class Panel : Control, IContainer
+public class Panel : OldControl, IContainer
 {
-    public ObservableList<Control> Children { get; } = new();
+    public ObservableList<OldControl> Children { get; } = new();
 }

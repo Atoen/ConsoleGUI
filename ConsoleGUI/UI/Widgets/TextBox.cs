@@ -3,7 +3,7 @@ using ConsoleGUI.UI.Events;
 
 namespace ConsoleGUI.UI.Widgets;
 
-public class TextBox : ContentControl
+public class TextBox : ContentOldControl
 {
     public TextBox()
     {
@@ -120,7 +120,7 @@ public class TextBox : ContentControl
         }
     }
 
-    public override void Resize()
+    internal override void Resize()
     {
         MinSize = InnerPadding * 2 + (MaxLineLength + 1, Text.Lines.Count + 1);
 

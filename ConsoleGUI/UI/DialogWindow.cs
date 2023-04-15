@@ -3,7 +3,7 @@ using ConsoleGUI.UI.Events;
 
 namespace ConsoleGUI.UI;
 
-public class DialogWindow : Control
+public class DialogWindow : OldControl
 {
     public DialogWindow()
     {

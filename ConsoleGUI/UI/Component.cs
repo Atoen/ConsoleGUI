@@ -1,4 +1,6 @@
-﻿namespace ConsoleGUI.UI;
+﻿using ConsoleGUI.ConsoleDisplay;
+
+namespace ConsoleGUI.UI;
 
 public abstract class Component
 {
@@ -41,8 +43,11 @@ public abstract class Component
     public Vector InnerSize => Size - InnerPadding * 2;
     public int InnerWidth => Width - InnerPadding.X * 2;
     public int InnerHeight => Height - InnerPadding.Y * 2;
+    
+    public Vector MinSize { get; set; }
+    public Vector MaxSize { get; set; }
 
-    public Vector RequiredSpace => ResizeMode == ResizeMode.Expand ? MinSize + OuterPadding * 2 : PaddedSize;
+    internal Vector RequiredSpace => ResizeMode == ResizeMode.Expand ? MinSize + OuterPadding * 2 : PaddedSize;
 
     private Vector _localPosition;
     private Vector _globalPosition;
@@ -120,9 +125,7 @@ public abstract class Component
             }
         }
     }
-
-    public Vector MinSize { get; set; }
-
+    
     protected void ApplyResizing()
     {
         Size = ResizeMode switch
@@ -133,13 +136,17 @@ public abstract class Component
         };
     }
 
-    public virtual void Resize()
+    internal virtual void Resize()
     {
     }
 
-    public void Expand(Vector maxSize = default)
+    internal void Expand(Vector maxSize = default)
     {
-        if (maxSize == default && Parent != null) maxSize = Parent.InnerSize;
+        if (maxSize == default)
+        {
+            maxSize = Parent?.InnerSize ?? Display.Size;
+        }
+
         Size = MinSize.ExpandTo(maxSize);
     }
 
@@ -151,9 +158,11 @@ public abstract class Component
         Enabled = enabled;
     }
 
-    public bool ContainsPoint(Vector pos) =>
-        pos.X >= GlobalPosition.X && pos.X < GlobalPosition.X + Width &&
-        pos.Y >= GlobalPosition.Y && pos.Y < GlobalPosition.Y + Height;
+    public bool ContainsPoint(Vector pos)
+    {
+        return pos.X >= GlobalPosition.X && pos.X < GlobalPosition.X + Width &&
+               pos.Y >= GlobalPosition.Y && pos.Y < GlobalPosition.Y + Height;
+    }
 
     private void SetZIndexInternal(int value)
     {

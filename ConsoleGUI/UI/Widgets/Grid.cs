@@ -1,9 +1,10 @@
-﻿using ConsoleGUI.Utils;
+﻿using ConsoleGUI.ConsoleDisplay;
+using ConsoleGUI.Utils;
 using ConsoleGUI.Visuals;
 
 namespace ConsoleGUI.UI.Widgets;
 
-public partial class Grid : Control
+public partial class Grid : OldControl
 {
     public Grid()
     {
@@ -16,7 +17,7 @@ public partial class Grid : Control
         Rows.CollectionChanged += RowsOnCollectionChanged;
     }
 
-    public ObservableList<Control> Children { get; } = new();
+    public ObservableList<OldControl> Children { get; } = new();
 
     public readonly GridElementCollection<Column> Columns = new();
     public readonly GridElementCollection<Row> Rows = new();
@@ -33,7 +34,7 @@ public partial class Grid : Control
     private bool _resizingContentNow;
     private bool _shouldRegenerateLines;
 
-    public void SetColumnAndRow(Control control, int column, int row, bool addChild = true)
+    public void SetColumnAndRow(OldControl oldControl, int column, int row, bool addChild = true)
     {
         if (column >= Columns.Count || column < 0)
         {
@@ -45,15 +46,15 @@ public partial class Grid : Control
             throw new InvalidOperationException($"Invalid row index. Value: {row}");
         }
 
-        var entry = _entries.FirstOrDefault(e => e.RefTarget == control);
+        var entry = _entries.FirstOrDefault(e => e.RefTarget == oldControl);
         var columnSpan = 1;
         var rowSpan = 1;
 
         if (entry == null)
         {
-            if (addChild) Children.Add(control);
+            if (addChild) Children.Add(oldControl);
 
-            _entries.Add(new Entry(control, column, row, 1, 1));
+            _entries.Add(new Entry(oldControl, column, row, 1, 1));
         }
         else
         {
@@ -74,11 +75,11 @@ public partial class Grid : Control
             }
         }
 
-        PlaceControl(control, column, row, columnSpan, rowSpan);
+        PlaceControl(oldControl, column, row, columnSpan, rowSpan);
         Resize();
     }
 
-    public void SetColumnSpanAndRowSpan(Control control, int columnSpan, int rowSpan)
+    public void SetColumnSpanAndRowSpan(OldControl oldControl, int columnSpan, int rowSpan)
     {
         if (columnSpan > Columns.Count || columnSpan <= 0)
         {
@@ -90,13 +91,13 @@ public partial class Grid : Control
             throw new InvalidOperationException($"Invalid row span. Value: {rowSpan}");
         }
 
-        var entry = _entries.FirstOrDefault(e => e.Reference.Target == control);
+        var entry = _entries.FirstOrDefault(e => e.Reference.Target == oldControl);
         var column = 0;
         var row = 0;
 
         if (entry == null)
         {
-            _entries.Add(new Entry(control, 0, 0, columnSpan, rowSpan));
+            _entries.Add(new Entry(oldControl, 0, 0, columnSpan, rowSpan));
         }
         else
         {
@@ -117,20 +118,60 @@ public partial class Grid : Control
             }
         }
 
-        PlaceControl(control, column, row, columnSpan, rowSpan);
+        PlaceControl(oldControl, column, row, columnSpan, rowSpan);
         Resize();
     }
 
-    private void PlaceControl(Control control, int column, int row, int columnSpan, int rowSpan)
+    public void FitToScreen()
+    {
+        if (ResizeMode != ResizeMode.Expand) return;
+
+        ScreenResizer.ScreenResized += delegate
+        {
+            Resize();
+        };
+    }
+    
+    private void ChildrenOnElementChanged(object? sender, CollectionChangedEventArgs<OldControl> e)
+    {
+        if (e.ChangeType == ChangeType.Remove && e.Element.Parent == this)
+        {
+            e.Element.Parent = null;
+        }
+
+        else if (e.ChangeType == ChangeType.Add)
+        {
+            e.Element.Parent = this;
+        }
+    }
+
+    private void ColumnsOnCollectionChanged(object? sender, EventArgs e)
+    {
+        CreateLineSegments();
+        // Columns.SetEvenSizes(InnerWidth);
+        Columns.FitSize(Display.Width - 2 * (InnerPadding.X + OuterPadding.X));
+
+        if (_entries.Count > 0 || ResizeMode == ResizeMode.Expand) Resize();
+    }
+
+    private void RowsOnCollectionChanged(object? sender, EventArgs e)
+    {
+        CreateLineSegments();
+        Rows.FitSize(Display.Height - 2 * (InnerPadding.Y + OuterPadding.Y));
+
+        if (_entries.Count > 0 || ResizeMode == ResizeMode.Expand) Resize();
+    }
+
+    private void PlaceControl(OldControl oldControl, int column, int row, int columnSpan, int rowSpan)
     {
         _resizingContentNow = true;
 
-        if (control is not ContentControl {Content: not null})
+        if (oldControl is not ContentOldControl {Content: not null})
         {
-            control.Resize();
+            oldControl.Resize();
         }
 
-        AdjustCellSize(control.PaddedSize, column, row, columnSpan, rowSpan);
+        AdjustCellSize(oldControl.PaddedSize, column, row, columnSpan, rowSpan);
 
         var baseOffset = new Vector
         {
@@ -138,28 +179,28 @@ public partial class Grid : Control
             Y = Rows.Offset(row) + InnerPadding.Y
         };
 
-        CalculatePosition(control, baseOffset + control.OuterPadding, column, row, columnSpan, rowSpan);
+        CalculatePosition(oldControl, baseOffset + oldControl.OuterPadding, column, row, columnSpan, rowSpan);
 
         _resizingContentNow = false;
     }
 
-    private void CalculatePosition(Control control, Vector offset, int column, int row, int columnSpan, int rowSpan)
+    private void CalculatePosition(OldControl oldControl, Vector offset, int column, int row, int columnSpan, int rowSpan)
     {
         offset.X += HorizontalAlignment switch
         {
-            HorizontalAlignment.Middle => (Columns.SpanSize(column, columnSpan) - control.PaddedWidth) / 2,
-            HorizontalAlignment.Right => Columns.SpanSize(column, columnSpan) - control.PaddedWidth,
+            HorizontalAlignment.Middle => (Columns.SpanSize(column, columnSpan) - oldControl.PaddedWidth) / 2,
+            HorizontalAlignment.Right => Columns.SpanSize(column, columnSpan) - oldControl.PaddedWidth,
             _ => 0
         };
 
         offset.Y += VerticalAlignment switch
         {
-            VerticalAlignment.Middle => (Rows.SpanSize(row, rowSpan) - control.PaddedHeight) / 2,
-            VerticalAlignment.Bottom => Rows.SpanSize(row, rowSpan) - control.PaddedHeight,
+            VerticalAlignment.Middle => (Rows.SpanSize(row, rowSpan) - oldControl.PaddedHeight) / 2,
+            VerticalAlignment.Bottom => Rows.SpanSize(row, rowSpan) - oldControl.PaddedHeight,
             _ => 0
         };
 
-        control.Position = offset;
+        oldControl.Position = offset;
     }
 
     private void AdjustCellSize(Vector size, int column, int row, int columnSpan, int rowSpan)
@@ -218,35 +259,6 @@ public partial class Grid : Control
         _shouldRegenerateLines = true;
     }
 
-    private void ChildrenOnElementChanged(object? sender, CollectionChangedEventArgs<Control> e)
-    {
-        if (e.ChangeType == ChangeType.Remove && e.Element.Parent == this)
-        {
-            e.Element.Parent = null;
-        }
-
-        else if (e.ChangeType == ChangeType.Add)
-        {
-            e.Element.Parent = this;
-        }
-    }
-
-    private void ColumnsOnCollectionChanged(object? sender, EventArgs e)
-    {
-        CreateLineSegments();
-        Columns.SetEvenSizes(InnerWidth);
-
-        if (_entries.Count > 0) Resize();
-    }
-
-    private void RowsOnCollectionChanged(object? sender, EventArgs e)
-    {
-        CreateLineSegments();
-        Rows.SetEvenSizes(InnerHeight);
-
-        if (_entries.Count > 0) Resize();
-    }
-
     public override void Render()
     {
         base.Render();
@@ -267,10 +279,39 @@ public partial class Grid : Control
         Children.Clear();
     }
 
-    public override void Resize()
+    internal override void Resize()
     {
         if (_resizingContentNow) return;
 
+        if (ResizeMode == ResizeMode.Expand)
+        {
+            Expand();
+            
+            Columns.FitSize(Display.Width - 2 * (InnerPadding.X + OuterPadding.X));
+            Rows.FitSize(Display.Height - 2 * (InnerPadding.Y + OuterPadding.Y));
+            
+            foreach (var entry in _entries)
+            {
+                if (entry is {RefTarget: not null, MultiCell: true})
+                {
+                    HideLinesForMultiCell(entry.Column, entry.Row, entry.ColumnSpan, entry.RowSpan);
+                }
+            }
+
+            _shouldRegenerateLines = true;
+
+        }
+        else
+        {
+            ResizeStretch();
+        }
+        
+        AdjustContentPosition();
+
+    }
+
+    private void ResizeStretch()
+    {
         Span<int> columnsMinimumWidth = stackalloc int[Columns.Count];
         Span<int> rowsMinimumHeight = stackalloc int[Rows.Count];
 
@@ -314,20 +355,13 @@ public partial class Grid : Control
 
         Width = Columns.TotalSize + InnerPadding.X * 2;
         Height = Rows.TotalSize + InnerPadding.Y * 2;
-
-        // var newWidth = Columns.TotalSize + InnerPadding.X * 2;
-        // var newHeight = Rows.TotalSize + InnerPadding.Y * 2;
-        //
-        // Size = MinSize.ExpandTo(new Vector(newWidth, newHeight));
-
-        AdjustContentPosition();
     }
 
     private class Entry
     {
-        public Entry(Control control, int column, int row, int columnSpan, int rowSpan)
+        public Entry(OldControl oldControl, int column, int row, int columnSpan, int rowSpan)
         {
-            Reference = new WeakReference(control);
+            Reference = new WeakReference(oldControl);
             Column = column;
             Row = row;
             ColumnSpan = columnSpan;
@@ -335,7 +369,7 @@ public partial class Grid : Control
         }
 
         public WeakReference Reference { get; }
-        public Control? RefTarget => Reference.Target as Control;
+        public OldControl? RefTarget => Reference.Target as OldControl;
 
         public int Column { get; set; }
         public int Row { get; set; }

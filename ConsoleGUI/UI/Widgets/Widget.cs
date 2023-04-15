@@ -2,7 +2,7 @@
 
 namespace ConsoleGUI.UI.Widgets;
 
-public abstract class Widget : Control
+public abstract class Widget : OldControl
 {
     public GridResizeDirection GridResizeDirection { get; init; } = GridResizeDirection.None;
 

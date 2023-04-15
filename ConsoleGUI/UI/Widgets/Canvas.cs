@@ -3,7 +3,7 @@ using ConsoleGUI.UI.Events;
 
 namespace ConsoleGUI.UI.Widgets;
 
-public class Canvas : ContentControl
+public class Canvas : ContentOldControl
 {
     public Canvas(int width, int height)
     {
@@ -31,7 +31,7 @@ public class Canvas : ContentControl
         return clickPos.X < Buffer.Size.X && clickPos.Y < Buffer.Size.Y && clickPos is {X: >= 0, Y: >= 0};
     }
 
-    public override void Resize()
+    internal override void Resize()
     {
         MinSize = Buffer.Size + InnerPadding * 2;
 

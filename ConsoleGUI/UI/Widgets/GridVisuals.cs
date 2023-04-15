@@ -161,6 +161,8 @@ public partial class Grid
 
     private void CreateLineSegments()
     {
+        _shouldRegenerateLines = true;
+        
         var columnsSpacers = Columns.Count > 0 ? Columns.Count - 1 : 0;
         var rowsSpacers = Rows.Count > 0 ? Rows.Count - 1 : 0;
 

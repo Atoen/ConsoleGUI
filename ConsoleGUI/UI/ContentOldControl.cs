@@ -1,9 +1,9 @@
 ﻿namespace ConsoleGUI.UI;
 
-public abstract class ContentControl : Control, IContent
+public abstract class ContentOldControl : OldControl, IContent
 {
-    private Control? _content;
-    public Control? Content
+    private OldControl? _content;
+    public OldControl? Content
     {
         get => _content;
         set => SetContent(value);
@@ -26,7 +26,7 @@ public abstract class ContentControl : Control, IContent
         Content?.Clear();
     }
 
-    public override void Resize()
+    internal override void Resize()
     {
         if (_content == null) return;
 
@@ -38,7 +38,7 @@ public abstract class ContentControl : Control, IContent
         _content.Center = Center;
     }
 
-    private void SetContent(Control? value)
+    private void SetContent(OldControl? value)
     {
         if (value == this)
         {
@@ -69,5 +69,5 @@ public abstract class ContentControl : Control, IContent
 
 public interface IContent
 {
-    public Control? Content { get; set; }
+    public OldControl? Content { get; set; }
 }

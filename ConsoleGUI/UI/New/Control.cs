@@ -2,51 +2,60 @@
 using ConsoleGUI.UI.Events;
 using ConsoleGUI.Visuals;
 
-namespace ConsoleGUI.UI;
+namespace ConsoleGUI.UI.New;
 
-public abstract class  Control : VisualComponent
+public delegate void MouseEventHandler(Control sender, MouseEventArgs e);
+public delegate void KeyboardEventHandler(Control sender, KeyboardEventArgs e);
+public delegate void FocusEventHandler(Control sender, InputEventArgs e);
+
+public abstract class Control : UiElement
 {
     protected Control() => Input.Register(this);
 
     public bool IsMouseOver { get; private set; }
+    public bool IsFocused { get; private set; }
 
-    public bool Focused { get; private set; }
-    public bool Focusable { get; set; } = true;
-    public bool ShowFocusedBorder { get; set; } = true;
+    public bool Focusable
+    {
+        get => _focusable;
+        set => SetField(ref _focusable, value, onChanged: OnFocusableChanged);
+    }
+
+    public bool ShowFocusBorder { get; set; } = true;
     public BorderStyle FocusBorderStyle { get; set; } = BorderStyle.Dotted;
     public Color FocusBorderColor { get; set; } = Color.Black;
 
-    public int TabIndex { get; set; }
-
-
-    private bool _hitTestVisible = true;
     public bool HitTestVisible
     {
         get => _hitTestVisible && Enabled;
         set => _hitTestVisible = value;
     }
 
-    public override void Render()
+    private void OnFocusableChanged(bool oldValue, bool newValue)
+    {
+        if (newValue == false) IsFocused = false;
+    }
+
+    private bool _focusable = true;
+    private bool _hitTestVisible = true;
+
+    internal override void Render()
     {
         base.Render();
-
+        
         // Focus border should not override normal border
-        if (Focused && ShowFocusedBorder && !ShowBorder)
+        if (IsFocused && ShowFocusBorder && !ShowBorder)
         {
             Display.DrawBorder(GlobalPosition, Size, FocusBorderColor, FocusBorderStyle);
         }
     }
 
-    public override void Remove()
+    public override void Delete()
     {
         Input.Unregister(this);
-        base.Remove();
+        base.Delete();
     }
-
-    public delegate void MouseEventHandler(Control sender, MouseEventArgs e);
-    public delegate void KeyboardEventHandler(Control sender, KeyboardEventArgs e);
-    public delegate void FocusEventHandler(Control sender, InputEventArgs e);
-
+    
     public event MouseEventHandler? MouseEnter;
     public event MouseEventHandler? MouseLeave;
     public event MouseEventHandler? MouseDown;
@@ -63,7 +72,7 @@ public abstract class  Control : VisualComponent
 
     public event FocusEventHandler? GotFocus;
     public event FocusEventHandler? LostFocus;
-
+    
     internal void SendMouseEvent(MouseEventType mouseEventType, MouseEventArgs e)
     {
         switch (mouseEventType)
@@ -117,7 +126,7 @@ public abstract class  Control : VisualComponent
         e.Source = this;
         (Parent as Control)?.SendMouseEvent(mouseEventType, e);
     }
-
+    
     internal void SendKeyboardEvent(KeyboardEventType keyboardEventType, KeyboardEventArgs e)
     {
         if (keyboardEventType == KeyboardEventType.KeyDown)
@@ -198,13 +207,13 @@ public abstract class  Control : VisualComponent
 
     protected virtual void OnGotFocus(InputEventArgs e)
     {
-        Focused = true;
+        IsFocused = true;
         GotFocus?.Invoke(this, e);
     }
 
     protected virtual void OnLostFocus(InputEventArgs e)
     {
-        Focused = false;
+        IsFocused = false;
         LostFocus?.Invoke(this, e);
     }
 
@@ -217,30 +226,4 @@ public abstract class  Control : VisualComponent
     {
         KeyUp?.Invoke(this, e);
     }
-}
-
-public enum MouseEventType
-{
-    MouseMove,
-    MouseEnter,
-    MouseExit,
-    MouseLeftDown,
-    MouseLeftUp,
-    MouseRightDown,
-    MouseRightUp,
-    MouseMiddleDown,
-    MouseScroll,
-    DoubleClick
-}
-
-public enum KeyboardEventType
-{
-    KeyDown,
-    KeyUp
-}
-
-public enum FocusEventType
-{
-    GotFocus,
-    LostFocus
 }

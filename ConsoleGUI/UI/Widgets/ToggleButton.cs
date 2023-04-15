@@ -29,7 +29,7 @@ public class ToggleButton<T> : Button
         base.OnMouseLeftDown(e);
     }
 
-    public override void Resize()
+    internal override void Resize()
     {
         if (ToggleManager.Count > 0 && !StartWidthBuiltInText) SetText();
 

@@ -1,6 +1,10 @@
 ﻿using ConsoleGUI.UI;
 using ConsoleGUI.UI.Events;
+using ConsoleGUI.UI.New;
 using static ConsoleGUI.NativeConsole;
+using FocusEventType = ConsoleGUI.UI.FocusEventType;
+using KeyboardEventType = ConsoleGUI.UI.KeyboardEventType;
+using MouseEventType = ConsoleGUI.UI.MouseEventType;
 
 namespace ConsoleGUI;
 
@@ -21,6 +25,7 @@ public static class Input
     private static readonly MouseState MouseState = new();
     private static readonly KeyboardState KeyboardState = new();
 
+    private static readonly List<OldControl> OldControls = new();
     private static readonly List<Control> Controls = new();
     private static readonly ReaderWriterLockSlim LockSlim = new();
 
@@ -51,6 +56,20 @@ public static class Input
         }.Start();
     }
 
+    internal static void Register(OldControl oldControl)
+    {
+        LockSlim.EnterWriteLock();
+        OldControls.Add(oldControl);
+        LockSlim.ExitWriteLock();
+    }
+
+    internal static void Unregister(OldControl oldControl)
+    {
+        LockSlim.EnterWriteLock();
+        OldControls.Remove(oldControl);
+        LockSlim.ExitWriteLock();
+    }
+    
     internal static void Register(Control control)
     {
         LockSlim.EnterWriteLock();
@@ -163,7 +182,7 @@ public static class Input
             control.SendMouseEvent(MouseEventType.MouseExit, args);
         }
 
-        if (control.Focused && (button & MouseButton.Left) != 0)
+        if (control.IsFocused && (button & MouseButton.Left) != 0)
         {
             args ??= MouseArgsPool.Get(control, MouseState);
             control.SendFocusEvent(FocusEventType.LostFocus, args);
@@ -229,8 +248,8 @@ public static class Input
 
         foreach (var control in Controls)
         {
-            if (!control.Focused) continue;
-
+            if (!control.IsFocused) continue;
+        
             SendKeyboardEvent(control);
             break;
         }

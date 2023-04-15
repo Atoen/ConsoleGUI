@@ -3,7 +3,7 @@ using ConsoleGUI.UI.Events;
 
 namespace ConsoleGUI.UI.Widgets;
 
-public class Button : ContentControl
+public class Button : ContentOldControl
 {
     public Button() => _text = new Text(nameof(Button)) {Parent = this};
 
@@ -23,7 +23,7 @@ public class Button : ContentControl
 
     public Action? OnClick { get; set; }
 
-    public override void Resize()
+    internal override void Resize()
     {
         MinSize = InnerPadding * 2 + _text.Size;
 

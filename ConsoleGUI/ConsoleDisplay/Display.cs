@@ -4,11 +4,13 @@ using ConsoleGUI.UI;
 using ConsoleGUI.UI.Widgets;
 using ConsoleGUI.Utils;
 using ConsoleGUI.Visuals;
+using VisualComponent = ConsoleGUI.UI.New.VisualComponent;
 
 namespace ConsoleGUI.ConsoleDisplay;
 
 public static class Display
 {
+    public static Vector Size => ScreenResizer.ScreenSize;
     public static int Width => ScreenResizer.ScreenWidth;
     public static int Height => ScreenResizer.ScreenHeight;
     public static DisplayMode Mode { get; private set; }
@@ -31,6 +33,9 @@ public static class Display
 
     private static readonly List<IRenderable> Renderables = new();
     private static readonly List<IRenderable> RemovedRenderables = new();
+    
+    private static readonly List<VisualComponent> Visuals = new();
+    private static readonly List<VisualComponent> VisualsToRemove = new();
 
     private static IRenderer _renderer = null!;
     private static readonly bool ShouldTryToResizeConsoleBuffer = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
@@ -88,6 +93,25 @@ public static class Display
         LockSlim.EnterWriteLock();
         Renderables.Remove(renderable);
         RemovedRenderables.Add(renderable);
+        LockSlim.ExitWriteLock();
+    }
+    
+    internal static void AddToRenderList(VisualComponent visual)
+    {
+        // renderable.ZIndexChanged += RenderableOnZIndexChanged;
+
+        LockSlim.EnterWriteLock();
+        Visuals.Add(visual);
+        LockSlim.ExitWriteLock();
+    }
+
+    internal static void RemoveFromRenderList(VisualComponent visual)
+    {
+        // renderable.ZIndexChanged -= RenderableOnZIndexChanged;
+
+        LockSlim.EnterWriteLock();
+        Visuals.Remove(visual);
+        VisualsToRemove.Add(visual);
         LockSlim.ExitWriteLock();
     }
 
@@ -282,13 +306,21 @@ public static class Display
     {
         LockSlim.EnterWriteLock();
 
-        foreach (var removed in RemovedRenderables) removed.Clear();
+        // foreach (var removed in RemovedRenderables) removed.Clear();
+        //
+        // RemovedRenderables.Clear();
 
-        RemovedRenderables.Clear();
+        foreach (var toRemove in VisualsToRemove) toRemove.Clear();
+        VisualsToRemove.Clear();
 
-        foreach (var renderable in Renderables)
+        // foreach (var renderable in Renderables)
+        // {
+        //     if (renderable.ShouldRender) renderable.Render();
+        // }
+
+        foreach (var visual in Visuals)
         {
-            if (renderable.ShouldRender) renderable.Render();
+            if (visual.Visible) visual.Render();
         }
 
         LockSlim.ExitWriteLock();
