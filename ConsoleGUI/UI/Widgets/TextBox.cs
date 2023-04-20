@@ -1,5 +1,6 @@
 ﻿using ConsoleGUI.ConsoleDisplay;
 using ConsoleGUI.UI.Events;
+using ConsoleGUI.UI.New;
 
 namespace ConsoleGUI.UI.Widgets;
 
@@ -19,7 +20,7 @@ public class TextBox : ContentOldControl
 
     public bool DisplayWatermark { get; set; } = true;
 
-    public TextEntryMode InputMode { get; set; } = TextEntryMode.All;
+    public AllowedSymbols InputMode { get; set; } = AllowedSymbols.All;
     public TextMode TextModeWhileTyping { get; set; } = TextMode.Italic;
     public Color TextBlockBackground { get; set; } = Color.White;
 
@@ -48,9 +49,9 @@ public class TextBox : ContentOldControl
     {
         return InputMode switch
         {
-            TextEntryMode.Alphanumeric => char.IsLetterOrDigit(symbol),
-            TextEntryMode.Letters => char.IsLetter(symbol),
-            TextEntryMode.Digits => char.IsDigit(symbol),
+            AllowedSymbols.Alphanumeric => char.IsLetterOrDigit(symbol),
+            AllowedSymbols.Letters => char.IsLetter(symbol),
+            AllowedSymbols.Digits => char.IsDigit(symbol),
             _ => !char.IsControl(symbol)
         };
     }

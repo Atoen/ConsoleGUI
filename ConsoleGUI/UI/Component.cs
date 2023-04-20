@@ -1,4 +1,5 @@
 ﻿using ConsoleGUI.ConsoleDisplay;
+using ConsoleGUI.UI.New;
 
 namespace ConsoleGUI.UI;
 
@@ -269,29 +270,6 @@ public abstract class Component
             Resize();
         }
     }
-}
-
-public enum State
-{
-    Default,
-    Highlighted,
-    Pressed
-}
-
-public enum ZIndexUpdateMode
-{
-    SameAsParent,
-    OneHigherThanParent,
-    TwoHigherThatParent,
-    Manual
-}
-
-public enum ResizeMode
-{
-    Grow,
-    Stretch,
-    Manual,
-    Expand
 }
 
 public class PositionChangedEventArgs : EventArgs

@@ -1,10 +1,11 @@
-﻿using ConsoleGUI.ConsoleDisplay;
+﻿using System.Collections;
+using ConsoleGUI.ConsoleDisplay;
 using ConsoleGUI.UI.Widgets;
 
 namespace ConsoleGUI.UI.New;
 
 [DebuggerDisplay("Text {Content}, Fg: {Foreground.ToString()}, Bg: {Background.ToString()}")]
-public class Text : VisualComponent
+public class Text : Visual, IText
 {
     public Text(string text)
     {
@@ -14,10 +15,12 @@ public class Text : VisualComponent
         PropertyChanged += OnPropertyChanged;
     }
 
-    public Color Foreground { get; set; } = Color.Black;
-    public Color Background { get; set; } = Color.Empty;
+    protected internal Text(string text, Component parent) : this(text) => Parent = parent;
 
-    public TextMode TextMode { get; set; } = TextMode.Default;
+    public virtual Color Foreground { get; set; } = Color.Black;
+    public virtual Color Background { get; set; } = Color.Empty;
+
+    public virtual TextMode TextMode { get; set; } = TextMode.Default;
     public Alignment Alignment { get; set; } = Alignment.Center;
 
     public string Content
@@ -40,9 +43,8 @@ public class Text : VisualComponent
 
     private bool _visible = true;
     private string _content;
-    private int _visualLength;
 
-    private void OnPropertyChanged(object sender, PropertyChangedEventArgs args)
+    protected virtual void OnPropertyChanged(object sender, PropertyChangedEventArgs args)
     {
         switch (args.PropertyName)
         {
@@ -56,7 +58,6 @@ public class Text : VisualComponent
                 break;
 
             case nameof(Size):
-                _visualLength = Width;
                 Parent?.SetProperty("RequestedContentSpace", Size);
                 if (Parent is not null) Center = Parent.Center;
                 break;
@@ -68,8 +69,7 @@ public class Text : VisualComponent
         if (Parent is null) return;
 
         var displaySpan = Content.AsSpan();
-
-        var sliceLength = Math.Min(_visualLength, Length);
+        var sliceLength = Math.Min(Width, Length);
 
         var parentAllowsOverflow = Parent.GetProperty<bool>("AllowTextOverflow");
         var parentAllowedSpace = Parent.GetProperty<Vector>("InnerSize");
@@ -83,7 +83,7 @@ public class Text : VisualComponent
 
         var visibleSlice = displaySpan[..sliceLength];
 
-        Display.Print(Center.X, Center.Y, visibleSlice, Foreground, Background, Alignment);
+        Display.Print(Center.X, Center.Y, visibleSlice, Foreground, Background, Alignment, TextMode);
     }
 
     internal override void Clear()
@@ -103,6 +103,10 @@ public class Text : VisualComponent
         Parent = null;
         base.Delete();
     }
+
+    public IEnumerator<char> GetEnumerator() => Content.GetEnumerator();
+
+    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
     public override string ToString() => Content;
 }

@@ -1,10 +1,11 @@
 ﻿using System.Runtime.InteropServices;
 using System.Text;
 using ConsoleGUI.UI;
+using ConsoleGUI.UI.New;
 using ConsoleGUI.UI.Widgets;
 using ConsoleGUI.Utils;
 using ConsoleGUI.Visuals;
-using VisualComponent = ConsoleGUI.UI.New.VisualComponent;
+using Component = ConsoleGUI.UI.Component;
 
 namespace ConsoleGUI.ConsoleDisplay;
 
@@ -34,8 +35,8 @@ public static class Display
     private static readonly List<IRenderable> Renderables = new();
     private static readonly List<IRenderable> RemovedRenderables = new();
 
-    private static readonly List<VisualComponent> Visuals = new();
-    private static readonly List<VisualComponent> VisualsToRemove = new();
+    private static readonly List<Visual> Visuals = new();
+    private static readonly List<Visual> VisualsToRemove = new();
 
     private static IRenderer _renderer = null!;
     private static readonly bool ShouldTryToResizeConsoleBuffer = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
@@ -62,7 +63,7 @@ public static class Display
             _renderer = new NativeDisplay(Width, Height);
         }
         else _renderer = new AnsiDisplay(Width, Height);
-
+        
         new Thread(Start)
         {
             Name = "Display Thread"
@@ -96,7 +97,7 @@ public static class Display
         LockSlim.ExitWriteLock();
     }
 
-    internal static void AddToRenderList(VisualComponent visual)
+    internal static void AddToRenderList(Visual visual)
     {
         // renderable.ZIndexChanged += RenderableOnZIndexChanged;
 
@@ -105,7 +106,7 @@ public static class Display
         LockSlim.ExitWriteLock();
     }
 
-    internal static void RemoveFromRenderList(VisualComponent visual)
+    internal static void RemoveFromRenderList(Visual visual)
     {
         // renderable.ZIndexChanged -= RenderableOnZIndexChanged;
 
@@ -130,6 +131,11 @@ public static class Display
         Alignment alignment = Alignment.Center, TextMode mode = TextMode.Default)
     {
         _renderer.Print(posX, posY, text, foreground, background, alignment, mode);
+    }
+
+    public static void PrintRich(int posX, int posY, IList<RichTextElement> data, Alignment alignment, int length)
+    {
+        _renderer.PrintRich(posX, posY, data, alignment, length);
     }
 
     public static void DrawRect(Vector pos, Vector size, Color color, char symbol = ' ')

@@ -1,16 +1,16 @@
 ﻿namespace ConsoleGUI.UI.New;
 
-public class Label : Control
+public class Label : Control, ITextWidget<IText>
 {
     public Label()
     {
-        _text = new Text(nameof(Label)) {Parent = this};
+        _text = new Text(nameof(Label), this);
 
         Focusable = false;
         PropertyChanged += OnPropertyChanged;
     }
 
-    public Text Text
+    public IText Text
     {
         get => _text;
         set => SetField(ref _text, value);
@@ -49,8 +49,8 @@ public class Label : Control
 
     private void ReplaceText(PropertyChangedEventArgs args)
     {
-        var oldText = (Text) args.OldValue!;
-        var newText = (Text) args.NewValue!;
+        var oldText = (args.OldValue as Visual)!;
+        var newText = (args.NewValue as Visual)!;
 
         oldText.Delete();
 
@@ -60,19 +60,19 @@ public class Label : Control
         RequestedContentSpace = newText.Size;
     }
 
-    private Text _text;
+    private IText _text;
     private bool _allowTextOverflow;
     private Vector _textOffset = Vector.Zero;
 
     internal override void Clear()
     {
-        Text.Clear();
+        (Text as Visual)?.Clear();
         base.Clear();
     }
 
     public override void Delete()
     {
-        Text.Delete();
+        (Text as Visual)?.Delete();
         base.Delete();
     }
 }

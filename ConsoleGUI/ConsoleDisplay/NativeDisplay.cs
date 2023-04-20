@@ -1,4 +1,5 @@
-﻿using ConsoleGUI.UI.Widgets;
+﻿using ConsoleGUI.UI.New;
+using ConsoleGUI.UI.Widgets;
 using ConsoleGUI.Visuals;
 using Microsoft.Win32.SafeHandles;
 using static ConsoleGUI.NativeConsole;
@@ -109,6 +110,11 @@ public sealed class NativeDisplay : IRenderer
         }
     }
 
+    public void PrintRich(int posX, int posY, IList<RichTextElement> data, Alignment alignment, int length)
+    {
+        
+    }
+
     public void DrawBuffer(Vector start, Vector end, Pixel[,] buffer)
     {
         for (var x = start.X; x < end.X; x++)
@@ -123,8 +129,8 @@ public sealed class NativeDisplay : IRenderer
         }
     }
 
-    public void DrawBorder(Vector pos, Vector size, Color color, BorderStyle style, bool FitsHorizontally,
-        bool FitsVertically)
+    public void DrawBorder(Vector pos, Vector size, Color color, BorderStyle style, bool fitsHorizontally,
+        bool fitsVertically)
     {
     }
 

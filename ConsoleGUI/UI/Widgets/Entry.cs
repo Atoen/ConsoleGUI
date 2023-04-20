@@ -1,11 +1,12 @@
 ﻿using ConsoleGUI.ConsoleDisplay;
 using ConsoleGUI.UI.Events;
+using ConsoleGUI.UI.New;
 
 namespace ConsoleGUI.UI.Widgets;
 
 public class Entry : ContentOldControl
 {
-    public Entry() => _text = new EntryText(nameof(Entry)) { Parent = this };
+    public Entry() => _text = new EntryText(nameof(Entry));
 
     private EntryText _text;
     public EntryText Text
@@ -26,7 +27,7 @@ public class Entry : ContentOldControl
         }
     }
 
-    public TextEntryMode InputMode { get; set; } = TextEntryMode.All;
+    public AllowedSymbols InputMode { get; set; } = AllowedSymbols.All;
     public TextMode TextModeWhileTyping { get; set; } = TextMode.Italic;
 
     public int MaxTextLenght { get; set; }
@@ -37,9 +38,9 @@ public class Entry : ContentOldControl
     {
         return InputMode switch
         {
-            TextEntryMode.Alphanumeric => char.IsLetterOrDigit(symbol),
-            TextEntryMode.Letters => char.IsLetter(symbol),
-            TextEntryMode.Digits => char.IsDigit(symbol),
+            AllowedSymbols.Alphanumeric => char.IsLetterOrDigit(symbol),
+            AllowedSymbols.Letters => char.IsLetter(symbol),
+            AllowedSymbols.Digits => char.IsDigit(symbol),
             _ => !char.IsControl(symbol)
         };
     }
@@ -69,7 +70,7 @@ public class Entry : ContentOldControl
         Text.Animating = false;
         Text.TextMode = TextMode.Default;
 
-        if (InputMode != TextEntryMode.Digits) return;
+        if (InputMode != AllowedSymbols.Digits) return;
 
         if (string.IsNullOrWhiteSpace(Text.String)) Text.String = "0";
     }
@@ -85,7 +86,7 @@ public class Entry : ContentOldControl
         if (CheckIfAllowed(e.Char) && Text.Length < MaxTextLenght)
         {
             // Numbers should not be preceded by the default '0'
-            if (Text.String == "0" && InputMode == TextEntryMode.Digits)
+            if (Text.String == "0" && InputMode == AllowedSymbols.Digits)
             {
                 Text.String = e.Char.ToString();
             }
@@ -135,10 +136,3 @@ public class Entry : ContentOldControl
     }
 }
 
-public enum TextEntryMode
-{
-    All,
-    Alphanumeric,
-    Letters,
-    Digits
-}

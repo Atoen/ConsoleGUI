@@ -1,4 +1,5 @@
-﻿namespace ConsoleGUI.UI;
+﻿using ConsoleGUI.UI.New;
+namespace ConsoleGUI.UI;
 
 public abstract class ContentOldControl : OldControl, IContent
 {

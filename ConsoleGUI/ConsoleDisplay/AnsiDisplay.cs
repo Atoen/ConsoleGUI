@@ -1,5 +1,6 @@
 ﻿using System.Collections.ObjectModel;
 using System.Text;
+using ConsoleGUI.UI.New;
 using ConsoleGUI.UI.Widgets;
 using ConsoleGUI.Utils;
 using ConsoleGUI.Visuals;
@@ -43,6 +44,8 @@ public sealed class AnsiDisplay : IRenderer
         if (posX < 0 || posX >= Display.Width || posY < 0 || posY >= Display.Height) return;
 
         _currentPixels[posX, posY].Symbol = symbol;
+        _currentPixels[posX, posY].Mode = TextMode.Default;
+        
         if (fg != Color.Empty) _currentPixels[posX, posY].Fg = fg;
         if (bg != Color.Empty)_currentPixels[posX, posY].Bg = bg;
     }
@@ -55,6 +58,7 @@ public sealed class AnsiDisplay : IRenderer
         for (var y = start.Y; y < end.Y; y++)
         {
             _currentPixels[x, y].Symbol = symbol;
+            _currentPixels[x, y].Mode = TextMode.Default;
             _currentPixels[x, y].Fg = Color.Empty;
             _currentPixels[x, y].Bg = color;
         }
@@ -67,6 +71,7 @@ public sealed class AnsiDisplay : IRenderer
         while (distance < length)
         {
             _currentPixels[pos.X, pos.Y].Symbol = symbol;
+            _currentPixels[pos.X, pos.Y].Mode = TextMode.Default;
 
             if (fg != Color.Empty) _currentPixels[pos.X, pos.Y].Fg = fg;
             if (bg != Color.Empty) _currentPixels[pos.X, pos.Y].Bg = bg;
@@ -111,6 +116,43 @@ public sealed class AnsiDisplay : IRenderer
         }
     }
 
+    public void PrintRich(int posX, int posY, IList<RichTextElement> data,
+        Alignment alignment, int length)
+    {
+        if (posY < 0 || posY >= Display.Height) return;
+
+        var startX = alignment switch
+        {
+            Alignment.Left => posX,
+            Alignment.Right => posX - length,
+            _ => posX - length / 2
+        };
+
+        if (startX >= Display.Width) return;
+
+        var endX = startX + length;
+        if (endX >= Display.Width) endX = Display.Width - 1;
+
+        var firstLetterOffset = 0;
+
+        if (startX < 0)
+        {
+            firstLetterOffset = -startX;
+            startX = 0;
+        }
+
+        for (int x = startX, i = firstLetterOffset; x < endX; x++, i++)
+        {
+            var dataTuple = data[i];
+            
+            _currentPixels[x, posY].Symbol = dataTuple.Symbol;
+            _currentPixels[x, posY].Mode = dataTuple.TextMode;
+            
+            if (dataTuple.Foreground != Color.Empty) _currentPixels[x, posY].Fg = dataTuple.Foreground;
+            if (dataTuple.Background != Color.Empty) _currentPixels[x, posY].Bg = dataTuple.Background;
+        }
+    }
+    
     public void DrawBuffer(Vector start, Vector end, Pixel[,] buffer)
     {
         for (var x = start.X; x < end.X; x++)
@@ -221,13 +263,13 @@ public sealed class AnsiDisplay : IRenderer
     private readonly ReadOnlyDictionary<TextMode, string> _ansiTextModes = new(
         new Dictionary<TextMode, string>
         {
-            {TextMode.Default, "\x1b[0m"},
-            {TextMode.Bold, "\x1b[1m"},
-            {TextMode.Italic, "\x1b[3m"},
-            {TextMode.Underline, "\x1b[4m"},
-            {TextMode.DoubleUnderline, "\x1b[21m"},
-            {TextMode.Overline, "\x1b[53m"},
-            {TextMode.Strikethrough, "\x1b[9m"}
+            {TextMode.Default, "\x1B[0m"},
+            {TextMode.Bold, "\x1B[1m"},
+            {TextMode.Italic, "\x1B[3m"},
+            {TextMode.Underline, "\x1B[4m"},
+            {TextMode.DoubleUnderline, "\x1B[21m"},
+            {TextMode.Overline, "\x1B[53m"},
+            {TextMode.Strikethrough, "\x1B[9m"}
         });
 
     private void AppendTextMode(TextMode mode, StringBuilder builder)
@@ -254,9 +296,6 @@ public sealed class AnsiDisplay : IRenderer
         var currentFg =  _currentPixels[0, 0].Fg;
         var currentBg = _currentPixels[0, 0].Bg;
         var currentMode = _currentPixels[0, 0].Mode;
-
-        // Values of pixel before print
-        var lastMode = TextMode.Default;
 
         // starting position for printing the gathered pixel symbols
         var streakStartPos = new Vector();
@@ -296,12 +335,7 @@ public sealed class AnsiDisplay : IRenderer
                         _stringBuilder.Append(_coordCache.GetOrAdd(streakStartPos));
                     }
 
-                    if (pixel.Mode != currentMode)
-                    {
-                        AppendTextMode(lastMode, _stringBuilder);
-                        currentMode = lastMode;
-                        lastMode = pixel.Mode;
-                    }
+                    AppendTextMode(currentMode, _stringBuilder);
 
                     // Resetting the colors to clear the pixels
                     if (previousIsCleared)
@@ -326,6 +360,7 @@ public sealed class AnsiDisplay : IRenderer
 
                 currentFg = pixel.Fg;
                 currentBg = pixel.Bg;
+                currentMode = pixel.Mode;
             }
 
             // Setting the start pos of the collected pixel symbols when collecting the first one
@@ -351,7 +386,7 @@ public sealed class AnsiDisplay : IRenderer
 
             _stringBuilder.Append(_coordCache.GetOrAdd(streakStartPos));
 
-            AppendTextMode(lastMode, _stringBuilder);
+            AppendTextMode(currentMode, _stringBuilder);
 
             _stringBuilder.Append(_foregroundColorCache.GetOrAdd(lastPixel.Fg));
             _stringBuilder.Append(_backgroundColorCache.GetOrAdd(lastPixel.Bg));

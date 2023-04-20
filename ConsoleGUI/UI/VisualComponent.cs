@@ -1,6 +1,7 @@
 ﻿using ConsoleGUI.Attributes.Attributes;
 using ConsoleGUI.ConsoleDisplay;
 using ConsoleGUI.Visuals;
+using ConsoleGUI.UI.New;
 
 namespace ConsoleGUI.UI;
 

@@ -1,6 +1,6 @@
 ﻿namespace ConsoleGUI.ConsoleDisplay;
 
-[DebuggerDisplay("Pixel({Symbol}), Fg: {Fg.ToString()}, Bg: {Bg.ToString()}, Mode: {Mode}")]
+[DebuggerDisplay("Pixel({Symbol}), Fg: {Fg.ToString()}, Bg: {Bg.ToString()}, TextMode: {Mode}")]
 public struct Pixel : IEquatable<Pixel>
 {
     public Pixel(char symbol, Color fg, Color bg, TextMode mode)

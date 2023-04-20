@@ -1,5 +1,6 @@
 ﻿using ConsoleGUI.ConsoleDisplay;
 using ConsoleGUI.UI.Events;
+using ConsoleGUI.UI.New;
 
 namespace ConsoleGUI.UI.Widgets;
 

@@ -3,7 +3,7 @@ using ConsoleGUI.Visuals;
 
 namespace ConsoleGUI.UI.New;
 
-public abstract class UiElement : VisualComponent
+public abstract class UiElement : Visual
 {
     protected UiElement() => PropertyChanged += OnPropertyChanged;
 

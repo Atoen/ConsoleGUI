@@ -1,26 +1,11 @@
 ﻿using System.Reflection;
 using System.Runtime.CompilerServices;
-using ConsoleGUI.ConsoleDisplay;
 
 namespace ConsoleGUI.UI.New;
 
 public delegate void PropertyChangedEventHandler(object sender, PropertyChangedEventArgs args);
 
-public class PropertyChangedEventArgs : EventArgs
-{
-    public PropertyChangedEventArgs(string propertyName, object? oldValue, object? newValue)
-    {
-        PropertyName = propertyName;
-        NewValue = newValue;
-        OldValue = oldValue;
-    }
-
-    public string PropertyName { get; }
-    public object? OldValue { get; }
-    public object? NewValue { get; }
-}
-
-public abstract class Component
+public abstract class Component : IPosition, ISize
 {
     public event PropertyChangedEventHandler? PropertyChanged;
 
@@ -116,7 +101,11 @@ public abstract class Component
 
         propInfo = GetType().GetProperty(propertyName);
 
-        if (propInfo is null) throw new ArgumentException($"{this} does not contain property {propertyName}.");
+        if (propInfo is null)
+        {
+            throw new ArgumentException($"{this} does not contain property {propertyName}.");
+        }
+        
         _propertyCache.Add(propertyName, propInfo);
 
         return propInfo;
@@ -178,9 +167,12 @@ public abstract class Component
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName, oldValue, newValue));
     }
 
+    protected delegate T PropertyChangingDelegate<T>(T value);
+    protected delegate void PropertyChangedDelegate<in T>(T newValue, T oldValue);
+
     protected void SetField<T>(ref T field, T value,
-        Func<T, T>? onChanging = null,
-        Action<T, T>? onChanged = null,
+        PropertyChangingDelegate<T>? onChanging = null,
+        PropertyChangedDelegate<T>? onChanged = null,
         [CallerMemberName] string? propertyName = null)
     {
         if (EqualityComparer<T>.Default.Equals(field, value)) return;
@@ -237,6 +229,29 @@ public abstract class Component
         if (Parent is null) Position = newValue;
         else Position = newValue - Parent.GlobalPosition;
     }
+}
+
+public enum State
+{
+    Default,
+    Highlighted,
+    Pressed
+}
+
+public enum ZIndexUpdateMode
+{
+    SameAsParent,
+    OneHigherThanParent,
+    TwoHigherThatParent,
+    Manual
+}
+
+public enum ResizeMode
+{
+    Grow,
+    Stretch,
+    Manual,
+    Expand
 }
 
 
