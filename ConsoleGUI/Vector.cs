@@ -28,5 +28,5 @@ public record struct Vector(int X, int Y)
 
     public static Vector operator +(Vector v) => v;
 
-    public override string ToString() => $"({X} {Y})";
+    public override string ToString() => $"({X}, {Y})";
 }

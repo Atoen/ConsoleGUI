@@ -116,8 +116,7 @@ public sealed class AnsiDisplay : IRenderer
         }
     }
 
-    public void PrintRich(int posX, int posY, IList<RichTextElement> data,
-        Alignment alignment, int length)
+    public void PrintRich(int posX, int posY, IList<RichTextElement> data, Alignment alignment, int length)
     {
         if (posY < 0 || posY >= Display.Height) return;
 
@@ -143,13 +142,13 @@ public sealed class AnsiDisplay : IRenderer
 
         for (int x = startX, i = firstLetterOffset; x < endX; x++, i++)
         {
-            var dataTuple = data[i];
+            var element = data[i];
             
-            _currentPixels[x, posY].Symbol = dataTuple.Symbol;
-            _currentPixels[x, posY].Mode = dataTuple.TextMode;
+            _currentPixels[x, posY].Symbol = element.Symbol;
+            _currentPixels[x, posY].Mode = element.TextMode;
             
-            if (dataTuple.Foreground != Color.Empty) _currentPixels[x, posY].Fg = dataTuple.Foreground;
-            if (dataTuple.Background != Color.Empty) _currentPixels[x, posY].Bg = dataTuple.Background;
+            if (element.Foreground != Color.Empty) _currentPixels[x, posY].Fg = element.Foreground;
+            if (element.Background != Color.Empty) _currentPixels[x, posY].Bg = element.Background;
         }
     }
     
