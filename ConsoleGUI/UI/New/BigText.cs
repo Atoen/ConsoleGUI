@@ -4,6 +4,7 @@ using ConsoleGUI.Visuals.Figlet;
 
 namespace ConsoleGUI.UI.New;
 
+[DebuggerDisplay("BigText {Content}, Fg: {Foreground.ToString()}, Bg: {Background.ToString()}")]
 public class BigText : Text
 {
     public BigText(string text) : this(text, Font.Default) { }
@@ -31,9 +32,14 @@ public class BigText : Text
     }
 
     private string[] _result;
+    private string[] _resultSynced = default!;
+    private bool _shouldSwap;
+    
     private readonly StringBuilder _builder = new();
     private Font _font;
     private CharacterWidth _characterWidth = CharacterWidth.Fitted;
+
+    private readonly object _syncRoot = new();
 
     protected override void OnPropertyChanged(object sender, PropertyChangedEventArgs args)
     {
@@ -59,15 +65,20 @@ public class BigText : Text
 
     private void GenerateNew()
     {
-        _result = CharacterWidth switch
+        lock (_syncRoot)
         {
-            CharacterWidth.Smush => GenerateSmush(),
-            CharacterWidth.Fitted => GenerateFitted(),
-            CharacterWidth.Full => GenerateFull(),
-            _ => throw new ArgumentOutOfRangeException(nameof(CharacterWidth))
-        };
+            _result = CharacterWidth switch
+            {
+                CharacterWidth.Smush => GenerateSmush(),
+                CharacterWidth.Fitted => GenerateFitted(),
+                CharacterWidth.Full => GenerateFull(),
+                _ => throw new ArgumentOutOfRangeException(nameof(CharacterWidth))
+            };
 
-        Size = new Vector(_result.Max(line => line.Length), Font.Height);
+            _shouldSwap = true;
+            
+            Size = new Vector(_result.Max(line => line.Length), Font.Height);
+        }
     }
 
     private string[] GenerateFitted()
@@ -145,12 +156,23 @@ public class BigText : Text
         return result;
     }
 
+    private void SwapData()
+    {
+        lock (_syncRoot)
+        {
+            _resultSynced = _result;
+            _shouldSwap = false;
+        }
+    }
+
     internal override void Render()
     {
-        if (Parent is null) return;
+        if (Parent is null || Length == 0) return;
 
-        var visualLength = Width;
+        if (_shouldSwap) SwapData();
         
+        var visualLength = Width;
+    
         var parentAllowsOverflow = Parent.GetProperty<bool>("AllowTextOverflow");
         var parentAllowedSpace = Parent.GetProperty<Vector>("InnerSize");
 
@@ -166,7 +188,7 @@ public class BigText : Text
         for (var i = 0; i < height; i++)
         {
             var offset = i - height / 2;
-            var slice = _result[i].AsSpan(0, visualLength);
+            var slice = _resultSynced[i].AsSpan(0, visualLength);
 
             Display.Print(Center.X, Center.Y + offset, slice, Foreground, Background, Alignment, TextMode);
         }

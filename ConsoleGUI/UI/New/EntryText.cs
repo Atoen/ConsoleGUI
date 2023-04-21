@@ -3,6 +3,7 @@ using ConsoleGUI.ConsoleDisplay;
 
 namespace ConsoleGUI.UI.New;
 
+[DebuggerDisplay("EntryText {Content}, Fg: {Foreground.ToString()}, Bg: {Background.ToString()}")]
 public class EntryText : Text
 {
     public EntryText(string text) : base(text)
@@ -125,7 +126,7 @@ public class EntryText : Text
                 return;
             }
 
-            var scroll = Parent.GetProperty<bool>("AllowTextScrolling");
+            var scroll = Parent is Entry && Parent.GetProperty<bool>("AllowTextScrolling");
             if (scroll)
             {
                 var allowedWidth = Parent.GetProperty<int>("InnerWidth");
@@ -159,7 +160,7 @@ public class EntryText : Text
             sliceLength = Math.Min(sliceLength, parentAllowedSpace.X);
         }
 
-        var visibleSlice = Parent.GetProperty<bool>("AllowTextScrolling")
+        var visibleSlice = Parent is Entry && Parent.GetProperty<bool>("AllowTextScrolling")
             ? displaySpan[^sliceLength..]
             : displaySpan[..sliceLength];
 

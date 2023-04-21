@@ -2,16 +2,19 @@
 
 namespace ConsoleGUI.UI.New;
 
-public class Button : Control, ITextWidget<Text>
+public class Button : Button<Text> { }
+
+public class Button<TText> : Control, ITextWidget<TText> where TText : class, IText
 {
     public Button()
     {
-        _text = new Text(nameof(Button)) {Parent = this};
+        _text = CreateDefaultText();
+        RequestedContentSpace = _text.Size;
 
         PropertyChanged += OnPropertyChanged;
     }
 
-    public Text Text
+    public TText Text
     {
         get => _text;
         set => SetField(ref _text, value);
@@ -30,7 +33,17 @@ public class Button : Control, ITextWidget<Text>
     }
 
     public Action? OnClick { get; set; }
+    
+    private TText CreateDefaultText()
+    {
+        var defaultArgs = new object[] { nameof(Button) };
 
+        var text = (TText) Activator.CreateInstance(typeof(TText), defaultArgs)!;
+        (text as Component)!.Parent = this;
+
+        return text;
+    }
+    
     private void OnPropertyChanged(object sender, PropertyChangedEventArgs args)
     {
         switch (args.PropertyName)
@@ -63,7 +76,7 @@ public class Button : Control, ITextWidget<Text>
         RequestedContentSpace = newText.Size;
     }
 
-    private Text _text;
+    private TText _text;
     private bool _allowTextOverflow;
     private Vector _textOffset = Vector.Zero;
 
@@ -95,13 +108,13 @@ public class Button : Control, ITextWidget<Text>
 
     internal override void Clear()
     {
-        Text.Clear();
+        (Text as Visual)?.Clear();
         base.Clear();
     }
 
     public override void Delete()
     {
-        Text.Delete();
+        (Text as Visual)?.Delete();
         base.Delete();
     }
 }

@@ -173,7 +173,7 @@ public abstract class Component : IPosition, ISize
     protected void SetField<T>(ref T field, T value,
         PropertyChangingDelegate<T>? onChanging = null,
         PropertyChangedDelegate<T>? onChanged = null,
-        [CallerMemberName] string? propertyName = null)
+        [CallerMemberName] string propertyName = default!)
     {
         if (EqualityComparer<T>.Default.Equals(field, value)) return;
 
@@ -184,7 +184,7 @@ public abstract class Component : IPosition, ISize
 
         onChanged?.Invoke(oldValue, value);
 
-        OnPropertyChanged(propertyName!, oldValue, value);
+        OnPropertyChanged(propertyName, oldValue, value);
     }
 
     private void ValidateSize() => Size = ValidateSize(Size);

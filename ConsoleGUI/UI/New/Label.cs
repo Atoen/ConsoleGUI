@@ -1,16 +1,20 @@
-﻿namespace ConsoleGUI.UI.New;
+﻿using System.Reflection;
 
-public class Label : Control, ITextWidget<IText>
+namespace ConsoleGUI.UI.New;
+
+public class Label : Label<Text> { }
+
+public class Label<TText> : Control, ITextWidget<TText> where TText : class, IText
 {
     public Label()
     {
-        _text = new Text(nameof(Label), this);
+        _text = CreateDefaultText();
 
         Focusable = false;
         PropertyChanged += OnPropertyChanged;
     }
 
-    public IText Text
+    public TText Text
     {
         get => _text;
         set => SetField(ref _text, value);
@@ -26,6 +30,16 @@ public class Label : Control, ITextWidget<IText>
     {
         get => _textOffset;
         set => SetField(ref _textOffset, value);
+    }
+    
+    private TText CreateDefaultText()
+    {
+        var defaultArgs = new object[] { nameof(Label) };
+
+        var text = (TText) Activator.CreateInstance(typeof(TText), defaultArgs)!;
+        (text as Component)!.Parent = this;
+
+        return text;
     }
 
     private void OnPropertyChanged(object sender, PropertyChangedEventArgs args)
@@ -60,7 +74,7 @@ public class Label : Control, ITextWidget<IText>
         RequestedContentSpace = newText.Size;
     }
 
-    private IText _text;
+    private TText _text;
     private bool _allowTextOverflow;
     private Vector _textOffset = Vector.Zero;
 

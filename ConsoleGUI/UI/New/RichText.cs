@@ -3,6 +3,7 @@ using ConsoleGUI.ConsoleDisplay;
 
 namespace ConsoleGUI.UI.New;
 
+[DebuggerDisplay("RichText {Content}, Fg: {Foreground.ToString()}, Bg: {Background.ToString()}")]
 public class RichText : Text, IEnumerable<RichTextElement>
 {
     public RichText(string text) : base(text)
@@ -27,13 +28,18 @@ public class RichText : Text, IEnumerable<RichTextElement>
         get => _textMode;
         set => _textMode = value;
     }
+    
+    public List<RichTextElement> RichData { get; }
 
     private Color _foreground = Color.Black;
     private Color _background = Color.Empty;
     private TextMode _textMode = TextMode.Default;
 
+    private object _syncRoot = new();
+    private bool _shouldSwap;
+    private List<RichTextElement> _syncedData = default!;
 
-    public List<RichTextElement> RichData { get; }
+
 
     public void AppendRich(string text, Color foreground) => AppendRich(text, foreground, Color.Empty);
 
@@ -107,19 +113,52 @@ public class RichText : Text, IEnumerable<RichTextElement>
 
     private void VerifyData()
     {
-        if (RichData.Count >= Length) return;
+        if (RichData.Count == Length) return;
 
-        var difference = Length - RichData.Count;
-
-        for (var i = Length - difference; i < Length; i++)
+        lock (_syncRoot)
         {
-            RichData.Add(new RichTextElement(Content[i], Foreground, Background, TextMode));
+            var difference = Length - RichData.Count;
+            if (difference > 0)
+            {
+                for (var i = RichData.Count; i < Length; i++)
+                {
+                    RichData.Add(new RichTextElement(Content[i], Foreground, Background, TextMode));
+                }
+            }
+
+            else
+            {
+                difference = -difference;
+            
+                for (var i = 0; i < Content.Length; i++)
+                {
+                    var symbol = Content[i];
+                    if (RichData[i].Symbol == symbol) continue;
+
+                    RichData[i] = new RichTextElement(symbol, Foreground, Background, TextMode);
+                }
+        
+                RichData.RemoveRange(RichData.Count - difference, difference);
+            }
+
+            _shouldSwap = true;
+        }
+    }
+
+    private void SwapData()
+    {
+        lock (_syncRoot)
+        {
+            _syncedData = RichData;
+            _shouldSwap = false;
         }
     }
 
     internal override void Render()
     {
         if (Parent is null || Length == 0) return;
+
+        if (_shouldSwap) SwapData();
 
         var sliceLength = Math.Min(Width, Length);
 
@@ -133,7 +172,7 @@ public class RichText : Text, IEnumerable<RichTextElement>
             sliceLength = Math.Min(sliceLength, parentAllowedSpace.X);
         }
 
-        Display.PrintRich(Center.X, Center.Y, RichData, Alignment, sliceLength);
+        Display.PrintRich(Center.X, Center.Y, _syncedData, Alignment, sliceLength);
     }
 
     public new IEnumerator<RichTextElement> GetEnumerator() => RichData.GetEnumerator();
