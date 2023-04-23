@@ -159,20 +159,11 @@ public class RichText : Text, IEnumerable<RichTextElement>
         if (Parent is null || Length == 0) return;
 
         if (_shouldSwap) SwapData();
+        
+        var visibleSize = GetVisibleSize();
+        if (visibleSize.Y == 0) return;
 
-        var sliceLength = Math.Min(Width, Length);
-
-        var parentAllowsOverflow = Parent.GetProperty<bool>("AllowTextOverflow");
-        var parentAllowedSpace = Parent.GetProperty<Vector>("InnerSize");
-
-        if (!parentAllowsOverflow)
-        {
-            if (parentAllowedSpace.Y < 1) return;
-
-            sliceLength = Math.Min(sliceLength, parentAllowedSpace.X);
-        }
-
-        Display.PrintRich(Center.X, Center.Y, _syncedData, Alignment, sliceLength);
+        Display.PrintRich(Center.X, Center.Y, _syncedData, Alignment, visibleSize.X);
     }
 
     public new IEnumerator<RichTextElement> GetEnumerator() => RichData.GetEnumerator();

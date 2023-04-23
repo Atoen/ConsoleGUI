@@ -145,24 +145,15 @@ public class EntryText : Text
 
         if (Animating) _enumerator.MoveNext();
 
-        Span<char> displaySpan = stackalloc char[Length];
-        Content.CopyTo(displaySpan);
-
-        var sliceLength = Math.Min(Width, Length);
-
-        var parentAllowsOverflow = Parent.GetProperty<bool>("AllowTextOverflow");
-        var parentAllowedSpace = Parent.GetProperty<Vector>("InnerSize");
-
-        if (!parentAllowsOverflow)
-        {
-            if (parentAllowedSpace.Y < 1) return;
-
-            sliceLength = Math.Min(sliceLength, parentAllowedSpace.X);
-        }
+        var visibleSize = GetVisibleSize();
+        if (visibleSize.Y == 0) return;
+        
+        Span<char> span = stackalloc char[Length];
+        Content.CopyTo(span);
 
         var visibleSlice = Parent is Entry && Parent.GetProperty<bool>("AllowTextScrolling")
-            ? displaySpan[^sliceLength..]
-            : displaySpan[..sliceLength];
+            ? span[^visibleSize.X..]
+            : span[..visibleSize.X];
 
         if (DisplayingCaret) visibleSlice[CaretPosition] = Caret;
 

@@ -85,17 +85,17 @@ public abstract class UiElement : Visual
 
     public override void Delete() => Display.RemoveFromRenderList(this);
 
-    private void ClearOnMove(Vector positionDelta)
-    {
-        Display.ClearRect(GlobalPosition + positionDelta, Size);
-    }
-
-    private void ClearOnSizeChanged(Vector oldSize, Vector newSize)
-    {
-        if (newSize.X >= oldSize.X && newSize.Y >= oldSize.Y) return;
-
-        Display.ClearRect(GlobalPosition, oldSize);
-    }
+    // private void ClearOnMove(Vector positionDelta)
+    // {
+    //     Display.ClearRect(GlobalPosition + positionDelta, Size);
+    // }
+    //
+    // private void ClearOnSizeChanged(Vector oldSize, Vector newSize)
+    // {
+    //     if (newSize.X >= oldSize.X && newSize.Y >= oldSize.Y) return;
+    //
+    //     Display.ClearRect(GlobalPosition, oldSize);
+    // }
 
     private void TryToExpandToRequestedSize()
     {

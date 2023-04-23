@@ -44,46 +44,68 @@ public class Text : Visual, IText
     private bool _visible = true;
     private string _content;
 
+    private readonly Dictionary<string, Action<PropertyChangedEventArgs>> _propertyChangedDelegates = new()
+    {
+        { nameof(Content), args => Console.Title = args.PropertyName }
+    };
+
     protected virtual void OnPropertyChanged(object sender, PropertyChangedEventArgs args)
     {
-        switch (args.PropertyName)
+        // switch (args.PropertyName)
+        // {
+        //     case nameof(Content):
+        //         Size = new Vector(((string) args.NewValue!).Length, 1);
+        //         break;
+        //
+        //     case nameof(MaxSize):
+        //     case nameof(MinSize):
+        //         Size = new Vector(Length, 1);
+        //         break;
+        //
+        //     case nameof(Size):
+        //         Parent?.SetProperty("RequestedContentSpace", Size);
+        //         if (Parent is not null) Center = Parent.Center;
+        //         break;
+        //     
+        //     case nameof(Position):
+        //     case nameof(GlobalPosition):
+        //         ClearOnMove((Vector) args.OldValue! - (Vector) args.NewValue!);
+        //         break;
+        // }
+
+        if (_propertyChangedDelegates.TryGetValue(args.PropertyName, out var handler))
         {
-            case nameof(Content):
-                Size = new Vector(((string) args.NewValue!).Length, 1);
-                break;
-
-            case nameof(MaxSize):
-            case nameof(MinSize):
-                Size = new Vector(Length, 1);
-                break;
-
-            case nameof(Size):
-                Parent?.SetProperty("RequestedContentSpace", Size);
-                if (Parent is not null) Center = Parent.Center;
-                break;
+            handler.Invoke(args);
         }
     }
 
     internal override void Render()
     {
-        if (Parent is null) return;
+        if (Parent is null || Length == 0) return;
 
-        var displaySpan = Content.AsSpan();
-        var sliceLength = Math.Min(Width, Length);
+        var visibleSize = GetVisibleSize();
+        if (visibleSize.Y == 0) return;
+        
+        var span = Content.AsSpan(0, visibleSize.X);
 
-        var parentAllowsOverflow = Parent.GetProperty<bool>("AllowTextOverflow");
-        var parentAllowedSpace = Parent.GetProperty<Vector>("InnerSize");
+        Display.Print(Center.X, Center.Y, span, Foreground, Background, Alignment, TextMode);
+    }
+
+    protected Vector GetVisibleSize()
+    {
+        var visibleSize = Size;
+
+        var parentAllowsOverflow = Parent!.GetProperty<bool>("AllowTextOverflow");
 
         if (!parentAllowsOverflow)
         {
-            if (parentAllowedSpace.Y < 1) return;
-
-            sliceLength = Math.Min(sliceLength, parentAllowedSpace.X);
+            var parentAllowedSpace = Parent!.GetProperty<Vector>("InnerSize");
+            
+            visibleSize.X = Math.Min(visibleSize.X, parentAllowedSpace.X);
+            visibleSize.Y = Math.Min(visibleSize.Y, parentAllowedSpace.Y);
         }
 
-        var visibleSlice = displaySpan[..sliceLength];
-
-        Display.Print(Center.X, Center.Y, visibleSlice, Foreground, Background, Alignment, TextMode);
+        return visibleSize;
     }
 
     internal override void Clear()
@@ -91,8 +113,8 @@ public class Text : Visual, IText
         var startPos = Alignment switch
         {
             Alignment.Left => GlobalPosition,
-            Alignment.Right => new Vector(GlobalPosition.X - Length, GlobalPosition.Y),
-            _ => new Vector(GlobalPosition.X - Length / 2, GlobalPosition.Y)
+            Alignment.Right => new Vector(GlobalPosition.X - Width, GlobalPosition.Y),
+            _ => new Vector(GlobalPosition.X - Width / 2, GlobalPosition.Y)
         };
 
         Display.ClearRect(startPos, Size);

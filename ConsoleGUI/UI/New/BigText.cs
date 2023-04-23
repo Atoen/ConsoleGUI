@@ -53,12 +53,17 @@ public class BigText : Text
 
             case nameof(MaxSize):
             case nameof(MinSize):
-                Size = new Vector(_result.Max(line => line.Length), 1);
+                Size = new Vector(_result.Max(line => line.Length), Font.Height);
                 break;
 
             case nameof(Size):
                 Parent?.SetProperty("RequestedContentSpace", Size);
                 if (Parent is not null) Center = Parent.Center;
+                break;
+            
+            case nameof(Position):
+            case nameof(GlobalPosition):
+                ClearOnMove((Vector) args.OldValue! - (Vector) args.NewValue!);
                 break;
         }
     }
@@ -164,31 +169,20 @@ public class BigText : Text
             _shouldSwap = false;
         }
     }
-
+    
     internal override void Render()
     {
         if (Parent is null || Length == 0) return;
 
         if (_shouldSwap) SwapData();
         
-        var visualLength = Width;
-    
-        var parentAllowsOverflow = Parent.GetProperty<bool>("AllowTextOverflow");
-        var parentAllowedSpace = Parent.GetProperty<Vector>("InnerSize");
+        var visibleSize = GetVisibleSize();
+        if (visibleSize.Y == 0) return;
 
-        if (!parentAllowsOverflow)
+        for (var i = 0; i < visibleSize.Y; i++)
         {
-            if (parentAllowedSpace.Y < 1) return;
-
-            visualLength = Math.Min(visualLength, parentAllowedSpace.X);
-        }
-
-        var height = Math.Min(parentAllowedSpace.Y, Font.Height);
-
-        for (var i = 0; i < height; i++)
-        {
-            var offset = i - height / 2;
-            var slice = _resultSynced[i].AsSpan(0, visualLength);
+            var offset = i - visibleSize.Y / 2;
+            var slice = _resultSynced[i].AsSpan(0, visibleSize.X);
 
             Display.Print(Center.X, Center.Y + offset, slice, Foreground, Background, Alignment, TextMode);
         }
