@@ -37,9 +37,7 @@ public class RichText : Text, IEnumerable<RichTextElement>
 
     private object _syncRoot = new();
     private bool _shouldSwap;
-    private List<RichTextElement> _syncedData = default!;
-
-
+    private List<RichTextElement> _syncedData = default!; 
 
     public void AppendRich(string text, Color foreground) => AppendRich(text, foreground, Color.Empty);
 
@@ -90,26 +88,26 @@ public class RichText : Text, IEnumerable<RichTextElement>
         }
     }
 
-    protected override void OnPropertyChanged(object sender, PropertyChangedEventArgs args)
-    {
-        switch (args.PropertyName)
-        {
-            case nameof(Content):
-                Size = new Vector(((string) args.NewValue!).Length, 1);
-                VerifyData();
-                break;
-
-            case nameof(MaxSize):
-            case nameof(MinSize):
-                Size = new Vector(Length, 1);
-                break;
-
-            case nameof(Size):
-                Parent?.SetProperty("RequestedContentSpace", Size);
-                if (Parent is not null) Center = Parent.Center;
-                break;
-        }
-    }
+    // protected override void OnPropertyChanged(object sender, PropertyChangedEventArgs args)
+    // {
+    //     switch (args.PropertyName)
+    //     {
+    //         case nameof(Content):
+    //             Size = new Vector(((string) args.NewValue!).Length, 1);
+    //             VerifyData();
+    //             break;
+    //
+    //         case nameof(MaxSize):
+    //         case nameof(MinSize):
+    //             Size = new Vector(Length, 1);
+    //             break;
+    //
+    //         case nameof(Size):
+    //             Parent?.SetProperty("RequestedContentSpace", Size);
+    //             if (Parent is not null) Center = Parent.Center;
+    //             break;
+    //     }
+    // }
 
     private void VerifyData()
     {

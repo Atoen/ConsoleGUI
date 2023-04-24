@@ -92,27 +92,33 @@ public class EntryText : Text
         }
     }
 
-    protected override void OnPropertyChanged(object sender, PropertyChangedEventArgs args)
+    private void SetHandlers()
     {
-        switch (args.PropertyName)
-        {
-            case nameof(Content):
-                MatchSizeToContent(args);
-                DelayCaretBink();
-                // SetCaretPosition();
-                break;
-
-            case nameof(MaxSize):
-            case nameof(MinSize):
-                Size = new Vector(Length, 1);
-                break;
-
-            case nameof(Size):
-                Parent?.SetProperty("RequestedContentSpace", Size);
-                if (Parent is not null) Center = Parent.Center;
-                break;
-        }
+        // HandlerManager.AddPropertyHandler(nameof(Content),
+        //     (component, args) => ((EntryText) component).DelayCaretBink());
     }
+
+    // protected override void OnPropertyChanged(object sender, PropertyChangedEventArgs args)
+    // {
+    //     switch (args.PropertyName)
+    //     {
+    //         case nameof(Content):
+    //             MatchSizeToContent(args);
+    //             DelayCaretBink();
+    //             // SetCaretPosition();
+    //             break;
+    //
+    //         case nameof(MaxSize):
+    //         case nameof(MinSize):
+    //             Size = new Vector(Length, 1);
+    //             break;
+    //
+    //         case nameof(Size):
+    //             Parent?.SetProperty("RequestedContentSpace", Size);
+    //             if (Parent is not null) Center = Parent.Center;
+    //             break;
+    //     }
+    // }
 
     private void MatchSizeToContent(PropertyChangedEventArgs args)
     {

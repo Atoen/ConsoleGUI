@@ -1,5 +1,6 @@
 ﻿using System.Reflection;
 using System.Runtime.CompilerServices;
+using ConsoleGUI.Utils;
 
 namespace ConsoleGUI.UI.New;
 
@@ -7,7 +8,7 @@ public delegate void PropertyChangedEventHandler(object sender, PropertyChangedE
 
 public abstract class Component : IPosition, ISize
 {
-    public event PropertyChangedEventHandler? PropertyChanged;
+    protected Component() => HandlerManager = new PropertyChangedHandlerManager(this);
 
     public bool Enabled
     {
@@ -162,13 +163,15 @@ public abstract class Component : IPosition, ISize
                pos.Y >= GlobalPosition.Y && pos.Y < GlobalPosition.Y + Height;
     }
 
-    protected virtual void OnPropertyChanged(string propertyName, object? oldValue, object? newValue)
+    private void OnPropertyChanged(string propertyName, object? oldValue, object? newValue)
     {
-        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName, oldValue, newValue));
+        HandlerManager.Handle(propertyName, oldValue, newValue);
     }
 
     protected delegate T PropertyChangingDelegate<T>(T value);
     protected delegate void PropertyChangedDelegate<in T>(T newValue, T oldValue);
+    
+    protected readonly PropertyChangedHandlerManager HandlerManager;
 
     protected void SetField<T>(ref T field, T value,
         PropertyChangingDelegate<T>? onChanging = null,

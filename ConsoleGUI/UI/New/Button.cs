@@ -10,8 +10,8 @@ public class Button<TText> : Control, ITextWidget<TText> where TText : class, IT
     {
         _text = CreateDefaultText();
         RequestedContentSpace = _text.Size;
-
-        PropertyChanged += OnPropertyChanged;
+        
+        SetHandlers();
     }
 
     public TText Text
@@ -44,23 +44,28 @@ public class Button<TText> : Control, ITextWidget<TText> where TText : class, IT
         return text;
     }
     
-    private void OnPropertyChanged(object sender, PropertyChangedEventArgs args)
-    {
-        switch (args.PropertyName)
-        {
-            case nameof(Text):
-                ReplaceText(args);
-                break;
+    // private void OnPropertyChanged(object sender, PropertyChangedEventArgs args)
+    // {
+    //     switch (args.PropertyName)
+    //     {
+    //         case nameof(Text):
+    //             ReplaceText(args);
+    //             break;
+    //
+    //         case nameof(Position):
+    //         case nameof(GlobalPosition):
+    //         case nameof(TextOffset):
+    //         case nameof(Size):
+    //         case nameof(Width):
+    //         case nameof(Height):
+    //             Text.Center = Center + TextOffset;
+    //             break;
+    //     }
+    // }
 
-            case nameof(Position):
-            case nameof(GlobalPosition):
-            case nameof(TextOffset):
-            case nameof(Size):
-            case nameof(Width):
-            case nameof(Height):
-                Text.Center = Center + TextOffset;
-                break;
-        }
+    private void SetHandlers()
+    {
+        
     }
 
     private void ReplaceText(PropertyChangedEventArgs args)

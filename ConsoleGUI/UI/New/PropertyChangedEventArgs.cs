@@ -8,7 +8,7 @@ public class PropertyChangedEventArgs : EventArgs
         NewValue = newValue;
         OldValue = oldValue;
     }
-
+    
     public string PropertyName { get; }
     public object? OldValue { get; }
     public object? NewValue { get; }

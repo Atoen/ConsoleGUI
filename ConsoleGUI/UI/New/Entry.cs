@@ -1,5 +1,6 @@
 ﻿using ConsoleGUI.ConsoleDisplay;
 using ConsoleGUI.UI.Events;
+using ConsoleGUI.Utils;
 
 namespace ConsoleGUI.UI.New;
 
@@ -13,8 +14,8 @@ public class Entry : Control, ITextWidget<EntryText>
             Foreground = Color.Gray,
             TextMode = TextMode.Italic
         };
-
-        PropertyChanged += OnPropertyChanged;
+        
+        SetHandlers();
     }
 
     public Text Watermark { get; }
@@ -48,24 +49,47 @@ public class Entry : Control, ITextWidget<EntryText>
     private EntryText _text;
     private Vector _textOffset;
 
-    private void OnPropertyChanged(object sender, PropertyChangedEventArgs args)
-    {
-        switch (args.PropertyName)
-        {
-            case nameof(Text):
-                ReplaceText(args);
-                break;
+    // private void OnPropertyChanged(object sender, PropertyChangedEventArgs args)
+    // {
+    //     switch (args.PropertyName)
+    //     {
+    //         case nameof(Text):
+    //             ReplaceText(args);
+    //             break;
+    //
+    //         case nameof(Position):
+    //         case nameof(GlobalPosition):
+    //         case nameof(TextOffset):
+    //         case nameof(Size):
+    //         case nameof(Width):
+    //         case nameof(Height):
+    //             Text.Center = Center + TextOffset;
+    //             Watermark.Center = Center + TextOffset;
+    //             break;
+    //     }
+    // }
 
-            case nameof(Position):
-            case nameof(GlobalPosition):
-            case nameof(TextOffset):
-            case nameof(Size):
-            case nameof(Width):
-            case nameof(Height):
-                Text.Center = Center + TextOffset;
-                Watermark.Center = Center + TextOffset;
-                break;
+    private void SetHandlers()
+    {
+        void MoveAction(Entry component, PropertyChangedEventArgs args)
+        {
+            component.Text.Center = component.Center + component.TextOffset;
+            component.Watermark.Center = component.Center + component.TextOffset;
         }
+
+        var handlers = new Dictionary<string, PropertyHandler<Entry>>
+        {
+            {nameof(Position), MoveAction},
+            {nameof(GlobalPosition), MoveAction},
+            {nameof(TextOffset), MoveAction},
+            {nameof(Size), MoveAction},
+            {nameof(Width), MoveAction},
+            {nameof(Height), MoveAction},
+            {nameof(Text), (component, args) => component.ReplaceText(args)}
+        };
+        
+        HandlerManager.SetHandlers(handlers);
+
     }
 
     private void ReplaceText(PropertyChangedEventArgs args)

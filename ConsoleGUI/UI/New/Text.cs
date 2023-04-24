@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using ConsoleGUI.ConsoleDisplay;
 using ConsoleGUI.UI.Widgets;
+using ConsoleGUI.Utils;
 
 namespace ConsoleGUI.UI.New;
 
@@ -12,7 +13,7 @@ public class Text : Visual, IText
         _content = text;
         Size = new Vector(Length, 1);
 
-        PropertyChanged += OnPropertyChanged;
+        SetHandlers();
     }
 
     protected internal Text(string text, Component parent) : this(text) => Parent = parent;
@@ -44,39 +45,26 @@ public class Text : Visual, IText
     private bool _visible = true;
     private string _content;
 
-    private readonly Dictionary<string, Action<PropertyChangedEventArgs>> _propertyChangedDelegates = new()
+    private void SetHandlers()
     {
-        { nameof(Content), args => Console.Title = args.PropertyName }
-    };
-
-    protected virtual void OnPropertyChanged(object sender, PropertyChangedEventArgs args)
-    {
-        // switch (args.PropertyName)
-        // {
-        //     case nameof(Content):
-        //         Size = new Vector(((string) args.NewValue!).Length, 1);
-        //         break;
-        //
-        //     case nameof(MaxSize):
-        //     case nameof(MinSize):
-        //         Size = new Vector(Length, 1);
-        //         break;
-        //
-        //     case nameof(Size):
-        //         Parent?.SetProperty("RequestedContentSpace", Size);
-        //         if (Parent is not null) Center = Parent.Center;
-        //         break;
-        //     
-        //     case nameof(Position):
-        //     case nameof(GlobalPosition):
-        //         ClearOnMove((Vector) args.OldValue! - (Vector) args.NewValue!);
-        //         break;
-        // }
-
-        if (_propertyChangedDelegates.TryGetValue(args.PropertyName, out var handler))
+        void MinMaxSize(Text component, PropertyChangedEventArgs args)
         {
-            handler.Invoke(args);
+            component.Size = new Vector((args.NewValue as string)!.Length, 1);
         }
+
+        var handlers = new Dictionary<string, PropertyHandler<Text>>
+        {
+            {nameof(Content), MinMaxSize},
+            {nameof(MaxSize), MinMaxSize},
+            {nameof(MinSize), MinMaxSize},
+            {nameof(Size), (component, _) =>
+            {
+                component.Parent?.SetProperty("RequestedContentSpace", component.Size);
+                if (component.Parent is not null) component.Center = component.Parent.Center;
+            }}
+        };
+
+        HandlerManager.SetHandlers(handlers);
     }
 
     internal override void Render()

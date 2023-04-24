@@ -1,5 +1,6 @@
 ﻿using System.Text;
 using ConsoleGUI.ConsoleDisplay;
+using ConsoleGUI.Utils;
 using ConsoleGUI.Visuals.Figlet;
 
 namespace ConsoleGUI.UI.New;
@@ -14,9 +15,9 @@ public class BigText : Text
         _font = font;
         _result = new string[Font.Height];
 
-        if (text.Length == 0) return;
+        if (text.Length != 0) GenerateNew();
         
-        GenerateNew();
+        SetHandlers();
     }
 
     public Font Font
@@ -41,35 +42,32 @@ public class BigText : Text
 
     private readonly object _syncRoot = new();
 
-    protected override void OnPropertyChanged(object sender, PropertyChangedEventArgs args)
+    private void SetHandlers()
     {
-        switch (args.PropertyName)
+        void Regenerate(BigText component, PropertyChangedEventArgs _) => component.GenerateNew();
+
+        void MoveAction(BigText component, PropertyChangedEventArgs args)
         {
-            case nameof(Content):
-            case nameof(CharacterWidth):
-            case nameof(Font):
-                GenerateNew();
-                break;
-
-            case nameof(MaxSize):
-            case nameof(MinSize):
-                Size = new Vector(_result.Max(line => line.Length), Font.Height);
-                break;
-
-            case nameof(Size):
-                Parent?.SetProperty("RequestedContentSpace", Size);
-                if (Parent is not null) Center = Parent.Center;
-                break;
-            
-            case nameof(Position):
-            case nameof(GlobalPosition):
-                ClearOnMove((Vector) args.OldValue! - (Vector) args.NewValue!);
-                break;
+            component.ClearOnMove((Vector) args.OldValue! - (Vector) args.NewValue!);
         }
+
+        var handlers = new Dictionary<string, PropertyHandler<BigText>>
+        {
+            {nameof(Content), Regenerate},
+            {nameof(CharacterWidth), Regenerate},
+            {nameof(Font), Regenerate},
+            {nameof(Position), MoveAction},
+            {nameof(GlobalPosition), MoveAction}
+        };
+        
+        
+        HandlerManager.SetHandlers(handlers);
     }
 
     private void GenerateNew()
     {
+        var sw = Stopwatch.StartNew();
+        
         lock (_syncRoot)
         {
             _result = CharacterWidth switch
@@ -84,6 +82,10 @@ public class BigText : Text
             
             Size = new Vector(_result.Max(line => line.Length), Font.Height);
         }
+        
+        sw.Stop();
+        
+        Debug.WriteLine($"Generate: {sw.ElapsedTicks}");
     }
 
     private string[] GenerateFitted()

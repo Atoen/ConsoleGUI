@@ -1,4 +1,5 @@
 ﻿using System.Reflection;
+using ConsoleGUI.Utils;
 
 namespace ConsoleGUI.UI.New;
 
@@ -11,7 +12,8 @@ public class Label<TText> : Control, ITextWidget<TText> where TText : class, ITe
         _text = CreateDefaultText();
 
         Focusable = false;
-        PropertyChanged += OnPropertyChanged;
+        
+        SetHandlers();
     }
 
     public TText Text
@@ -42,23 +44,44 @@ public class Label<TText> : Control, ITextWidget<TText> where TText : class, ITe
         return text;
     }
 
-    private void OnPropertyChanged(object sender, PropertyChangedEventArgs args)
+    // private void OnPropertyChanged(object sender, PropertyChangedEventArgs args)
+    // {
+    //     switch (args.PropertyName)
+    //     {
+    //         case nameof(Text):
+    //             ReplaceText(args);
+    //             break;
+    //
+    //         case nameof(Position):
+    //         case nameof(GlobalPosition):
+    //         case nameof(TextOffset):
+    //         case nameof(Size):
+    //         case nameof(Width):
+    //         case nameof(Height):
+    //             Text.Center = Center + TextOffset;
+    //             break;
+    //     }
+    // }
+    
+    private void SetHandlers()
     {
-        switch (args.PropertyName)
+        void MoveAction(Label component, PropertyChangedEventArgs args)
         {
-            case nameof(Text):
-                ReplaceText(args);
-                break;
-
-            case nameof(Position):
-            case nameof(GlobalPosition):
-            case nameof(TextOffset):
-            case nameof(Size):
-            case nameof(Width):
-            case nameof(Height):
-                Text.Center = Center + TextOffset;
-                break;
+            component.Text.Center = component.Center + component.TextOffset;
         }
+
+        var handlers = new Dictionary<string, PropertyHandler<Label>>
+        {
+            {nameof(Position), MoveAction},
+            {nameof(GlobalPosition), MoveAction},
+            {nameof(TextOffset), MoveAction},
+            {nameof(Size), MoveAction},
+            {nameof(Width), MoveAction},
+            {nameof(Height), MoveAction},
+            {nameof(Text), (component, args) => component.ReplaceText(args)}
+        };
+        
+        HandlerManager.SetHandlers(handlers);
     }
 
     private void ReplaceText(PropertyChangedEventArgs args)

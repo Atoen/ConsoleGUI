@@ -1,11 +1,12 @@
 ﻿using ConsoleGUI.ConsoleDisplay;
+using ConsoleGUI.Utils;
 using ConsoleGUI.Visuals;
 
 namespace ConsoleGUI.UI.New;
 
 public abstract class UiElement : Visual
 {
-    protected UiElement() => PropertyChanged += OnPropertyChanged;
+    protected UiElement() => SetHandlers();
 
     public Color DefaultColor { get; set; } = Color.Bisque;
     public Color HighlightedColor { get; set; } = Color.Gray;
@@ -121,6 +122,35 @@ public abstract class UiElement : Visual
             default:
                 throw new ArgumentOutOfRangeException();
         }
+    }
+
+    private void SetHandlers()
+    {
+        void ClearOnSize(UiElement component, PropertyChangedEventArgs args)
+        {
+            component.ClearOnSizeChanged((Vector) args.OldValue!, (Vector) args.NewValue!);
+        }
+
+        void ClearOnMoveAction(UiElement component, PropertyChangedEventArgs args)
+        {
+            component.ClearOnMove((Vector) args.OldValue! - (Vector) args.NewValue!);
+        }
+
+        var handlers = new Dictionary<string, PropertyHandler<UiElement>>
+        {
+            {nameof(Size), ClearOnSize},
+            {nameof(InnerPadding), ClearOnSize},
+            {nameof(OuterPadding), ClearOnSize},
+            
+            {nameof(Position), ClearOnMoveAction},
+            {nameof(GlobalPosition), ClearOnMoveAction},
+            
+            {nameof(MinSize), (component, _) => component.TryToExpandToRequestedSize()},
+            {nameof(MaxSize), (component, _) => component.TryToExpandToRequestedSize()},
+            {nameof(RequestedContentSpace), (component, _) => component.Resize()}
+        };
+
+        HandlerManager.SetHandlers(handlers);
     }
 
     private void OnPropertyChanged(object sender, PropertyChangedEventArgs args)
