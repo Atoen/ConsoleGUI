@@ -35,7 +35,7 @@ public class BigText : Text
     private string[] _result;
     private string[] _resultSynced = default!;
     private bool _shouldSwap;
-    
+
     private readonly StringBuilder _builder = new();
     private Font _font;
     private CharacterWidth _characterWidth = CharacterWidth.Fitted;
@@ -44,30 +44,16 @@ public class BigText : Text
 
     private void SetHandlers()
     {
-        void Regenerate(BigText component, PropertyChangedEventArgs _) => component.GenerateNew();
-
-        void MoveAction(BigText component, PropertyChangedEventArgs args)
+        var handlers = new PropertyHandlerDefinitionCollection<BigText>
         {
-            component.ClearOnMove((Vector) args.OldValue! - (Vector) args.NewValue!);
-        }
-
-        var handlers = new Dictionary<string, PropertyHandler<BigText>>
-        {
-            {nameof(Content), Regenerate},
-            {nameof(CharacterWidth), Regenerate},
-            {nameof(Font), Regenerate},
-            {nameof(Position), MoveAction},
-            {nameof(GlobalPosition), MoveAction}
+            {(nameof(Content), nameof(CharacterWidth), nameof(Font)), (component, _) => component.GenerateNew()}
         };
         
-        
-        HandlerManager.SetHandlers(handlers);
+        HandlerManager.AddHandlers(handlers);
     }
 
     private void GenerateNew()
     {
-        var sw = Stopwatch.StartNew();
-        
         lock (_syncRoot)
         {
             _result = CharacterWidth switch
@@ -79,13 +65,9 @@ public class BigText : Text
             };
 
             _shouldSwap = true;
-            
+
             Size = new Vector(_result.Max(line => line.Length), Font.Height);
         }
-        
-        sw.Stop();
-        
-        Debug.WriteLine($"Generate: {sw.ElapsedTicks}");
     }
 
     private string[] GenerateFitted()
@@ -171,7 +153,7 @@ public class BigText : Text
             _shouldSwap = false;
         }
     }
-    
+
     internal override void Render()
     {
         if (Parent is null || Length == 0) return;
@@ -179,7 +161,7 @@ public class BigText : Text
         if (_shouldSwap) SwapData();
         
         var visibleSize = GetVisibleSize();
-        if (visibleSize.Y == 0) return;
+        if (visibleSize is {X: <= 0, Y: <= 0}) return;
 
         for (var i = 0; i < visibleSize.Y; i++)
         {

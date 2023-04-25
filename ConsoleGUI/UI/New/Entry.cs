@@ -8,14 +8,17 @@ public class Entry : Control, ITextWidget<EntryText>
 {
     public Entry()
     {
-        _text = new EntryText(this);
-        Watermark = new Text("Text", this)
-        {
-            Foreground = Color.Gray,
-            TextMode = TextMode.Italic
-        };
-        
         SetHandlers();
+
+        Watermark = New.Text.CreateDefault<Text>(this, "Type here...");
+        Watermark.Foreground = Color.Gray;
+        Watermark.TextMode = TextMode.Italic;
+
+        Text = New.Text.CreateDefault<EntryText>(this, string.Empty);
+
+        var contentSpace = new Vector(Math.Max(Text.Length, Watermark.Length), 1);
+        RequestedContentSpace = contentSpace;
+        MinSize = contentSpace with {X = contentSpace.X + InnerPadding.X * 2};
     }
 
     public Text Watermark { get; }
@@ -46,58 +49,33 @@ public class Entry : Control, ITextWidget<EntryText>
     }
 
     private bool _allowTextOverflow;
-    private EntryText _text;
+    private EntryText _text = null!;
     private Vector _textOffset;
-
-    // private void OnPropertyChanged(object sender, PropertyChangedEventArgs args)
-    // {
-    //     switch (args.PropertyName)
-    //     {
-    //         case nameof(Text):
-    //             ReplaceText(args);
-    //             break;
-    //
-    //         case nameof(Position):
-    //         case nameof(GlobalPosition):
-    //         case nameof(TextOffset):
-    //         case nameof(Size):
-    //         case nameof(Width):
-    //         case nameof(Height):
-    //             Text.Center = Center + TextOffset;
-    //             Watermark.Center = Center + TextOffset;
-    //             break;
-    //     }
-    // }
 
     private void SetHandlers()
     {
-        void MoveAction(Entry component, PropertyChangedEventArgs args)
+        void CenterText(Entry component, PropertyChangedEventArgs args)
         {
-            component.Text.Center = component.Center + component.TextOffset;
-            component.Watermark.Center = component.Center + component.TextOffset;
+            var center = component.Center + component.TextOffset;
+            component.Text.Center = center;
+            component.Watermark.Center = center;
         }
 
-        var handlers = new Dictionary<string, PropertyHandler<Entry>>
+        var handlers = new PropertyHandlerDefinitionCollection<Entry>
         {
-            {nameof(Position), MoveAction},
-            {nameof(GlobalPosition), MoveAction},
-            {nameof(TextOffset), MoveAction},
-            {nameof(Size), MoveAction},
-            {nameof(Width), MoveAction},
-            {nameof(Height), MoveAction},
+            {(nameof(Position), nameof(GlobalPosition), nameof(TextOffset), nameof(Size), nameof(Width), nameof(Height)), CenterText},
             {nameof(Text), (component, args) => component.ReplaceText(args)}
         };
-        
-        HandlerManager.SetHandlers(handlers);
 
+        HandlerManager.AddHandlers(handlers);
     }
 
     private void ReplaceText(PropertyChangedEventArgs args)
     {
-        var oldText = (Text) args.OldValue!;
+        var oldText = (Text?) args.OldValue;
         var newText = (Text) args.NewValue!;
 
-        oldText.Delete();
+        oldText?.Delete();
 
         newText.Parent = this;
         newText.Center = Center;
@@ -154,7 +132,7 @@ public class Entry : Control, ITextWidget<EntryText>
 
     private void MoveCaret()
     {
-        
+
     }
 
     private void EnterText(KeyboardEventArgs e)
@@ -164,22 +142,22 @@ public class Entry : Control, ITextWidget<EntryText>
             case ConsoleKey.Enter:
                 ExitEntryMode();
                 return;
-            
+
             case ConsoleKey.Backspace:
                 Text.RemoveLast();
                 return;
-            
+
             case ConsoleKey.LeftArrow:
                 Text.CaretPosition--;
                 Text.ForceCaret();
                 return;
-            
+
             case ConsoleKey.RightArrow:
                 Text.CaretPosition++;
                 Text.ForceCaret();
                 return;
         }
-        
+
 
         int maxLength;
         if (AllowTextOverflow || AllowTextScrolling)
@@ -208,10 +186,30 @@ public class Entry : Control, ITextWidget<EntryText>
 
     protected override void OnMouseLeftDown(MouseEventArgs e)
     {
+        State = State.Pressed;
+        
         if (_inEntryMode) ExitEntryMode();
         else EnterEntryMode();
 
         base.OnMouseLeftDown(e);
+    }
+    
+    protected override void OnMouseMove(MouseEventArgs e)
+    {
+        if (e.LeftButton == MouseButtonState.Released) State = State.Highlighted;
+        base.OnMouseMove(e);
+    }
+    
+    protected override void OnMouseEnter(MouseEventArgs e)
+    {
+        State = State.Highlighted;
+        base.OnMouseEnter(e);
+    }
+
+    protected override void OnMouseExit(MouseEventArgs e)
+    {
+        State = State.Default;
+        base.OnMouseExit(e);
     }
 
     protected override void OnLostFocus(InputEventArgs e)

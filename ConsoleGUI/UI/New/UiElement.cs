@@ -8,10 +8,10 @@ public abstract class UiElement : Visual
 {
     protected UiElement() => SetHandlers();
 
-    public Color DefaultColor { get; set; } = Color.Bisque;
-    public Color HighlightedColor { get; set; } = Color.Gray;
-    public Color PressedColor { get; set; } = Color.DarkGray;
-    public Color InactiveColor { get; set; } = Color.DarkSlateGray;
+    public Color DefaultColor { get; set; } = Theme.Colors.DefaultColor;
+    public Color HighlightedColor { get; set; } = Theme.Colors.HighlightedColor;
+    public Color PressedColor { get; set; } = Theme.Colors.PressedColor;
+    public Color InactiveColor { get; set; } = Theme.Colors.InactiveColor;
 
     public Color ColorTheme
     {
@@ -40,9 +40,10 @@ public abstract class UiElement : Visual
         }
     }
 
-    public bool ShowBorder { get; set; }
-    public BorderStyle BorderStyle { get; set; } = BorderStyle.Single;
-    public Color BorderColor { get; set; } = Color.White;
+    public Border Border { get; set; } = new()
+    {
+        Visible = Theme.Border.Visible, Color = Theme.Border.Color, Style = Theme.Border.Style
+    };
 
     public Vector InnerPadding
     {
@@ -79,24 +80,12 @@ public abstract class UiElement : Visual
     {
         Display.DrawRect(GlobalPosition, Size, CurrentColor);
 
-        if (ShowBorder) Display.DrawBorder(GlobalPosition, Size, BorderColor, BorderStyle);
+        if (Border.Visible) Display.DrawBorder(GlobalPosition, Size, Border.Color, Border.Style);
     }
 
     internal override void Clear() => Display.ClearRect(GlobalPosition, Size);
 
     public override void Delete() => Display.RemoveFromRenderList(this);
-
-    // private void ClearOnMove(Vector positionDelta)
-    // {
-    //     Display.ClearRect(GlobalPosition + positionDelta, Size);
-    // }
-    //
-    // private void ClearOnSizeChanged(Vector oldSize, Vector newSize)
-    // {
-    //     if (newSize.X >= oldSize.X && newSize.Y >= oldSize.Y) return;
-    //
-    //     Display.ClearRect(GlobalPosition, oldSize);
-    // }
 
     private void TryToExpandToRequestedSize()
     {
@@ -136,50 +125,14 @@ public abstract class UiElement : Visual
             component.ClearOnMove((Vector) args.OldValue! - (Vector) args.NewValue!);
         }
 
-        var handlers = new Dictionary<string, PropertyHandler<UiElement>>
+        var handlers = new PropertyHandlerDefinitionCollection<UiElement>
         {
-            {nameof(Size), ClearOnSize},
-            {nameof(InnerPadding), ClearOnSize},
-            {nameof(OuterPadding), ClearOnSize},
-            
-            {nameof(Position), ClearOnMoveAction},
-            {nameof(GlobalPosition), ClearOnMoveAction},
-            
-            {nameof(MinSize), (component, _) => component.TryToExpandToRequestedSize()},
-            {nameof(MaxSize), (component, _) => component.TryToExpandToRequestedSize()},
-            {nameof(RequestedContentSpace), (component, _) => component.Resize()}
+            {(nameof(Size), nameof(Width), nameof(Height), nameof(InnerPadding), nameof(OuterPadding)), ClearOnSize},
+            {(nameof(Position), nameof(GlobalPosition)), ClearOnMoveAction},
+            {nameof(RequestedContentSpace), (component, _) => component.Resize()},
+            {(nameof(MinSize), nameof(MaxSize)), (component, _) => component.TryToExpandToRequestedSize()}
         };
 
-        HandlerManager.SetHandlers(handlers);
-    }
-
-    private void OnPropertyChanged(object sender, PropertyChangedEventArgs args)
-    {
-        var property = args.PropertyName;
-        var oldValue = args.OldValue;
-        var newValue = args.NewValue;
-
-        switch (property)
-        {
-            case nameof(Size):
-            case nameof(InnerPadding):
-            case nameof(OuterPadding):
-                ClearOnSizeChanged((Vector) oldValue!, (Vector) newValue!);
-                break;
-
-            case nameof(Position):
-            case nameof(GlobalPosition):
-                ClearOnMove((Vector) oldValue! - (Vector) newValue!);
-                break;
-
-            case nameof(RequestedContentSpace):
-                Resize();
-                break;
-
-            case nameof(MaxSize):
-            case nameof(MinSize):
-                TryToExpandToRequestedSize();
-                break;
-        }
+        HandlerManager.AddHandlers(handlers);
     }
 }

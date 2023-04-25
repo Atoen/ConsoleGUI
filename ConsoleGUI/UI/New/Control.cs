@@ -21,9 +21,10 @@ public abstract class Control : UiElement
         set => SetField(ref _focusable, value, onChanged: OnFocusableChanged);
     }
 
-    public bool ShowFocusBorder { get; set; } = true;
-    public BorderStyle FocusBorderStyle { get; set; } = BorderStyle.Dotted;
-    public Color FocusBorderColor { get; set; } = Color.Black;
+    public Border FocusedBorder { get; set; } = new()
+    {
+        Visible = Theme.FocusedBorder.Visible, Style = Theme.FocusedBorder.Style, Color = Theme.FocusedBorder.Color
+    };
 
     public bool HitTestVisible
     {
@@ -44,9 +45,9 @@ public abstract class Control : UiElement
         base.Render();
 
         // Focus border should not override normal border
-        if (IsFocused && ShowFocusBorder && !ShowBorder)
+        if (IsFocused && FocusedBorder.Visible && !Border.Visible)
         {
-            Display.DrawBorder(GlobalPosition, Size, FocusBorderColor, FocusBorderStyle);
+            Display.DrawBorder(GlobalPosition, Size, FocusedBorder.Color, FocusedBorder.Style);
         }
     }
 

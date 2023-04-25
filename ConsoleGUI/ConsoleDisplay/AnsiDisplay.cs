@@ -45,7 +45,7 @@ public sealed class AnsiDisplay : IRenderer
 
         _currentPixels[posX, posY].Symbol = symbol;
         _currentPixels[posX, posY].Mode = TextMode.Default;
-        
+
         if (fg != Color.Empty) _currentPixels[posX, posY].Fg = fg;
         if (bg != Color.Empty)_currentPixels[posX, posY].Bg = bg;
     }
@@ -143,15 +143,15 @@ public sealed class AnsiDisplay : IRenderer
         for (int x = startX, i = firstLetterOffset; x < endX; x++, i++)
         {
             var element = data[i];
-            
+
             _currentPixels[x, posY].Symbol = element.Symbol;
             _currentPixels[x, posY].Mode = element.TextMode;
-            
+
             if (element.Foreground != Color.Empty) _currentPixels[x, posY].Fg = element.Foreground;
             if (element.Background != Color.Empty) _currentPixels[x, posY].Bg = element.Background;
         }
     }
-    
+
     public void DrawBuffer(Vector start, Vector end, Pixel[,] buffer)
     {
         for (var x = start.X; x < end.X; x++)
@@ -168,40 +168,40 @@ public sealed class AnsiDisplay : IRenderer
 
         for (var x = start.X + 1; x < end.X - 1; x++)
         {
-            _currentPixels[x, start.Y].Symbol = Border.Symbols[style][BorderFragment.Horizontal];
+            _currentPixels[x, start.Y].Symbol = BorderSymbols.Symbols[style][BorderFragment.Horizontal];
             _currentPixels[x, start.Y].Fg = color;
 
-            _currentPixels[x, end.Y - 1].Symbol = Border.Symbols[style][BorderFragment.Horizontal];
+            _currentPixels[x, end.Y - 1].Symbol = BorderSymbols.Symbols[style][BorderFragment.Horizontal];
             _currentPixels[x, end.Y - 1].Fg = color;
         }
 
         for (var y = start.Y + 1; y < end.Y - 1; y++)
         {
-            _currentPixels[start.X, y].Symbol = Border.Symbols[style][BorderFragment.Vertical];
+            _currentPixels[start.X, y].Symbol = BorderSymbols.Symbols[style][BorderFragment.Vertical];
             _currentPixels[start.X, y].Fg = color;
 
-            _currentPixels[end.X - 1, y].Symbol = Border.Symbols[style][BorderFragment.Vertical];
+            _currentPixels[end.X - 1, y].Symbol = BorderSymbols.Symbols[style][BorderFragment.Vertical];
             _currentPixels[end.X - 1, y].Fg = color;
         }
 
-        _currentPixels[start.X, start.Y].Symbol = Border.Symbols[style][BorderFragment.UpperLeft];
+        _currentPixels[start.X, start.Y].Symbol = BorderSymbols.Symbols[style][BorderFragment.UpperLeft];
         _currentPixels[start.X, start.Y].Fg = color;
 
         if (fitsHorizontally)
         {
-            _currentPixels[end.X - 1, start.Y].Symbol = Border.Symbols[style][BorderFragment.UpperRight];
+            _currentPixels[end.X - 1, start.Y].Symbol = BorderSymbols.Symbols[style][BorderFragment.UpperRight];
             _currentPixels[end.X - 1, start.Y].Fg = color;
         }
 
         if (fitsVertically)
         {
-            _currentPixels[start.X, end.Y - 1].Symbol = Border.Symbols[style][BorderFragment.LowerLeft];
+            _currentPixels[start.X, end.Y - 1].Symbol = BorderSymbols.Symbols[style][BorderFragment.LowerLeft];
             _currentPixels[start.X, end.Y - 1].Fg = color;
         }
 
         if (!fitsHorizontally || !fitsVertically) return;
 
-        _currentPixels[end.X - 1, end.Y - 1].Symbol = Border.Symbols[style][BorderFragment.LowerRight];
+        _currentPixels[end.X - 1, end.Y - 1].Symbol = BorderSymbols.Symbols[style][BorderFragment.LowerRight];
         _currentPixels[end.X - 1, end.Y - 1].Fg = color;
     }
 

@@ -28,7 +28,7 @@ public class RichText : Text, IEnumerable<RichTextElement>
         get => _textMode;
         set => _textMode = value;
     }
-    
+
     public List<RichTextElement> RichData { get; }
 
     private Color _foreground = Color.Black;
@@ -37,7 +37,7 @@ public class RichText : Text, IEnumerable<RichTextElement>
 
     private object _syncRoot = new();
     private bool _shouldSwap;
-    private List<RichTextElement> _syncedData = default!; 
+    private List<RichTextElement> _syncedData = default!;
 
     public void AppendRich(string text, Color foreground) => AppendRich(text, foreground, Color.Empty);
 
@@ -127,7 +127,7 @@ public class RichText : Text, IEnumerable<RichTextElement>
             else
             {
                 difference = -difference;
-            
+
                 for (var i = 0; i < Content.Length; i++)
                 {
                     var symbol = Content[i];
@@ -135,7 +135,7 @@ public class RichText : Text, IEnumerable<RichTextElement>
 
                     RichData[i] = new RichTextElement(symbol, Foreground, Background, TextMode);
                 }
-        
+
                 RichData.RemoveRange(RichData.Count - difference, difference);
             }
 
@@ -159,7 +159,7 @@ public class RichText : Text, IEnumerable<RichTextElement>
         if (_shouldSwap) SwapData();
         
         var visibleSize = GetVisibleSize();
-        if (visibleSize.Y == 0) return;
+        if (visibleSize is {X: <= 0, Y: <= 0}) return;
 
         Display.PrintRich(Center.X, Center.Y, _syncedData, Alignment, visibleSize.X);
     }

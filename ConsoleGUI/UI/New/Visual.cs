@@ -13,7 +13,7 @@ public abstract class Visual : Component
     internal abstract void Clear();
 
     public virtual void Delete() => Display.RemoveFromRenderList(this);
-    
+
     protected void ClearOnMove(Vector positionDelta)
     {
         Display.ClearRect(GlobalPosition + positionDelta, Size);

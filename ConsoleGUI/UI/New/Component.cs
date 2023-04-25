@@ -106,7 +106,7 @@ public abstract class Component : IPosition, ISize
         {
             throw new ArgumentException($"{this} does not contain property {propertyName}.");
         }
-        
+
         _propertyCache.Add(propertyName, propInfo);
 
         return propInfo;
@@ -170,7 +170,7 @@ public abstract class Component : IPosition, ISize
 
     protected delegate T PropertyChangingDelegate<T>(T value);
     protected delegate void PropertyChangedDelegate<in T>(T newValue, T oldValue);
-    
+
     protected readonly PropertyChangedHandlerManager HandlerManager;
 
     protected void SetField<T>(ref T field, T value,
@@ -208,6 +208,10 @@ public abstract class Component : IPosition, ISize
 
         return size;
     }
+
+    protected void RemoveMinSize() => _minSizeSet = false;
+
+    protected void RemoveMaxSize() => _maxSizeSet = true;
 
     private void OnMinSizeChanged(Vector oldValue, Vector newValue)
     {

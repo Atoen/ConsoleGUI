@@ -2,7 +2,7 @@
 
 namespace ConsoleGUI.Utils;
 
-public delegate void PropertyHandler<in TComponent>(TComponent component, PropertyChangedEventArgs args);
+public delegate void PropertyHandler<in TComponent>(TComponent component, PropertyChangedEventArgs args) where TComponent : Component;
 
 public class PropertyChangedHandlerManager
 {
@@ -19,14 +19,14 @@ public class PropertyChangedHandlerManager
         if (!_handlers.TryGetValue(propertyName, out var propertyHandlers)) return;
 
         var args = new PropertyChangedEventArgs(propertyName, oldValue, newValue);
-        
+
         foreach (var handler in propertyHandlers)
         {
             handler.Invoke(_component, args);
         }
     }
 
-    public void SetPropertyHandler<TComponent>(string propertyName, PropertyHandler<TComponent> handler) where TComponent : Component
+    public void OverridePropertyHandler<TComponent>(string propertyName, PropertyHandler<TComponent> handler) where TComponent : Component
     {
         if (!_handlers.TryGetValue(propertyName, out var propertyHandlers))
         {
@@ -40,24 +40,26 @@ public class PropertyChangedHandlerManager
         propertyHandlers.Add(handler.ToBase());
     }
 
-    public void SetPropertyHandlers<TComponent>(string propertyName, IEnumerable<PropertyHandler<TComponent>> handlers) where TComponent : Component
+    public void OverridePropertyHandlers<TComponent>(string propertyName, IEnumerable<PropertyHandler<TComponent>> handlers) where TComponent : Component
     {
         _handlers[propertyName] = handlers.ToBaseList();
     }
 
-    public void SetHandlers<TComponent>(Dictionary<string, PropertyHandler<TComponent>> handlers) where TComponent : Component
+    public void OverrideHandlers<TComponent>(PropertyHandlerDefinitionCollection<TComponent> handlerDefinitionCollection) where TComponent : Component
     {
-        foreach (var (key, value) in handlers)
+        foreach (var (targets, handler) in handlerDefinitionCollection)
+        foreach (var target in targets)
         {
-            SetPropertyHandler(key, value);
+            OverridePropertyHandler(target, handler);
         }
     }
-    
-    public void AddHandlers<TComponent>(Dictionary<string, PropertyHandler<TComponent>> handlers) where TComponent : Component
+
+    public void AddHandlers<TComponent>(PropertyHandlerDefinitionCollection<TComponent> handlerDefinitionCollection) where TComponent : Component
     {
-        foreach (var (key, value) in handlers)
+        foreach (var (targets, handler) in handlerDefinitionCollection)
+        foreach (var target in targets)
         {
-            AddPropertyHandler(key, value);
+            AddPropertyHandler(target, handler);
         }
     }
 

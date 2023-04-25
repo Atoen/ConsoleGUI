@@ -47,16 +47,14 @@ public class Text : Visual, IText
 
     private void SetHandlers()
     {
-        void MinMaxSize(Text component, PropertyChangedEventArgs args)
+        void SetSize(Text component, PropertyChangedEventArgs args)
         {
             component.Size = new Vector((args.NewValue as string)!.Length, 1);
         }
 
-        var handlers = new Dictionary<string, PropertyHandler<Text>>
+        var handlers = new PropertyHandlerDefinitionCollection<Text>
         {
-            {nameof(Content), MinMaxSize},
-            {nameof(MaxSize), MinMaxSize},
-            {nameof(MinSize), MinMaxSize},
+            {(nameof(Content), nameof(MinSize), nameof(MaxSize)), SetSize},
             {nameof(Size), (component, _) =>
             {
                 component.Parent?.SetProperty("RequestedContentSpace", component.Size);
@@ -64,7 +62,19 @@ public class Text : Visual, IText
             }}
         };
 
-        HandlerManager.SetHandlers(handlers);
+        HandlerManager.AddHandlers(handlers);
+    }
+
+    internal static TText CreateDefault<TText>(Component parent, string? content = null) where TText : Text
+    {
+        var args = new object[1];
+
+        args[0] = content ?? parent.GetType().Name;
+
+        var text = (TText) Activator.CreateInstance(typeof(TText), args)!;
+        text.Parent = parent;
+
+        return text;
     }
 
     internal override void Render()
@@ -72,8 +82,8 @@ public class Text : Visual, IText
         if (Parent is null || Length == 0) return;
 
         var visibleSize = GetVisibleSize();
-        if (visibleSize.Y == 0) return;
-        
+        if (visibleSize is {X: <= 0, Y: <= 0}) return;
+
         var span = Content.AsSpan(0, visibleSize.X);
 
         Display.Print(Center.X, Center.Y, span, Foreground, Background, Alignment, TextMode);
@@ -88,7 +98,7 @@ public class Text : Visual, IText
         if (!parentAllowsOverflow)
         {
             var parentAllowedSpace = Parent!.GetProperty<Vector>("InnerSize");
-            
+
             visibleSize.X = Math.Min(visibleSize.X, parentAllowedSpace.X);
             visibleSize.Y = Math.Min(visibleSize.Y, parentAllowedSpace.Y);
         }

@@ -5,11 +5,11 @@ namespace ConsoleGUI.UI.New;
 
 public class Label : Label<Text> { }
 
-public class Label<TText> : Control, ITextWidget<TText> where TText : class, IText
+public class Label<TText> : Control, ITextWidget<TText> where TText : Text
 {
     public Label()
     {
-        _text = CreateDefaultText();
+        _text = New.Text.CreateDefault<TText>(this);
 
         Focusable = false;
         
@@ -33,55 +33,21 @@ public class Label<TText> : Control, ITextWidget<TText> where TText : class, ITe
         get => _textOffset;
         set => SetField(ref _textOffset, value);
     }
-    
-    private TText CreateDefaultText()
-    {
-        var defaultArgs = new object[] { nameof(Label) };
 
-        var text = (TText) Activator.CreateInstance(typeof(TText), defaultArgs)!;
-        (text as Component)!.Parent = this;
-
-        return text;
-    }
-
-    // private void OnPropertyChanged(object sender, PropertyChangedEventArgs args)
-    // {
-    //     switch (args.PropertyName)
-    //     {
-    //         case nameof(Text):
-    //             ReplaceText(args);
-    //             break;
-    //
-    //         case nameof(Position):
-    //         case nameof(GlobalPosition):
-    //         case nameof(TextOffset):
-    //         case nameof(Size):
-    //         case nameof(Width):
-    //         case nameof(Height):
-    //             Text.Center = Center + TextOffset;
-    //             break;
-    //     }
-    // }
-    
     private void SetHandlers()
     {
-        void MoveAction(Label component, PropertyChangedEventArgs args)
+        void CenterText(Label component, PropertyChangedEventArgs args)
         {
             component.Text.Center = component.Center + component.TextOffset;
         }
 
-        var handlers = new Dictionary<string, PropertyHandler<Label>>
+        var handlers = new PropertyHandlerDefinitionCollection<Label>()
         {
-            {nameof(Position), MoveAction},
-            {nameof(GlobalPosition), MoveAction},
-            {nameof(TextOffset), MoveAction},
-            {nameof(Size), MoveAction},
-            {nameof(Width), MoveAction},
-            {nameof(Height), MoveAction},
+            {(nameof(Position), nameof(GlobalPosition), nameof(TextOffset), nameof(Size), nameof(Width), nameof(Height)), CenterText},
             {nameof(Text), (component, args) => component.ReplaceText(args)}
         };
         
-        HandlerManager.SetHandlers(handlers);
+        HandlerManager.AddHandlers(handlers);
     }
 
     private void ReplaceText(PropertyChangedEventArgs args)
@@ -103,13 +69,13 @@ public class Label<TText> : Control, ITextWidget<TText> where TText : class, ITe
 
     internal override void Clear()
     {
-        (Text as Visual)?.Clear();
+        Text.Clear();
         base.Clear();
     }
 
     public override void Delete()
     {
-        (Text as Visual)?.Delete();
+        Text.Delete();
         base.Delete();
     }
 }

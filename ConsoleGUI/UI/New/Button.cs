@@ -1,17 +1,18 @@
-﻿using ConsoleGUI.UI.Events;
+﻿using System.Diagnostics.CodeAnalysis;
+using ConsoleGUI.UI.Events;
+using ConsoleGUI.Utils;
 
 namespace ConsoleGUI.UI.New;
 
 public class Button : Button<Text> { }
 
-public class Button<TText> : Control, ITextWidget<TText> where TText : class, IText
+public class Button<TText> : Control, ITextWidget<TText> where TText : Text
 {
     public Button()
     {
-        _text = CreateDefaultText();
-        RequestedContentSpace = _text.Size;
+        AddHandlers();
         
-        SetHandlers();
+        Text = New.Text.CreateDefault<TText>(this);
     }
 
     public TText Text
@@ -33,47 +34,29 @@ public class Button<TText> : Control, ITextWidget<TText> where TText : class, IT
     }
 
     public Action? OnClick { get; set; }
-    
-    private TText CreateDefaultText()
+
+    private void AddHandlers()
     {
-        var defaultArgs = new object[] { nameof(Button) };
+        void CenterText(Button<TText> component, PropertyChangedEventArgs args)
+        {
+            component.Text.Center = component.Center + component.TextOffset;
+        }
 
-        var text = (TText) Activator.CreateInstance(typeof(TText), defaultArgs)!;
-        (text as Component)!.Parent = this;
-
-        return text;
-    }
-    
-    // private void OnPropertyChanged(object sender, PropertyChangedEventArgs args)
-    // {
-    //     switch (args.PropertyName)
-    //     {
-    //         case nameof(Text):
-    //             ReplaceText(args);
-    //             break;
-    //
-    //         case nameof(Position):
-    //         case nameof(GlobalPosition):
-    //         case nameof(TextOffset):
-    //         case nameof(Size):
-    //         case nameof(Width):
-    //         case nameof(Height):
-    //             Text.Center = Center + TextOffset;
-    //             break;
-    //     }
-    // }
-
-    private void SetHandlers()
-    {
+        var handlers = new PropertyHandlerDefinitionCollection<Button<TText>>()
+        {
+            {(nameof(Position), nameof(GlobalPosition), nameof(TextOffset), nameof(Size), nameof(Width), nameof(Height)), CenterText},
+            {nameof(Text), (component, args) => component.ReplaceText(args)}
+        };
         
+        HandlerManager.AddHandlers(handlers);
     }
 
     private void ReplaceText(PropertyChangedEventArgs args)
     {
-        var oldText = (Text) args.OldValue!;
-        var newText = (Text) args.NewValue!;
+        var oldText = (TText?) args.OldValue;
+        var newText = (TText) args.NewValue!;
 
-        oldText.Delete();
+        oldText?.Delete();
 
         newText.Parent = this;
         newText.Center = Center;
@@ -81,7 +64,7 @@ public class Button<TText> : Control, ITextWidget<TText> where TText : class, IT
         RequestedContentSpace = newText.Size;
     }
 
-    private TText _text;
+    private TText _text = null!;
     private bool _allowTextOverflow;
     private Vector _textOffset = Vector.Zero;
 
@@ -113,13 +96,13 @@ public class Button<TText> : Control, ITextWidget<TText> where TText : class, IT
 
     internal override void Clear()
     {
-        (Text as Visual)?.Clear();
+        Text.Clear();
         base.Clear();
     }
 
     public override void Delete()
     {
-        (Text as Visual)?.Delete();
+        Text.Delete();
         base.Delete();
     }
 }

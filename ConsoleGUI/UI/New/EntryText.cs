@@ -9,6 +9,8 @@ public class EntryText : Text
     public EntryText(string text) : base(text)
     {
         _enumerator = Cycle();
+        
+        SetHandlers();
     }
 
     protected internal EntryText(Component parent) : this(string.Empty) => Parent = parent;
@@ -94,55 +96,7 @@ public class EntryText : Text
 
     private void SetHandlers()
     {
-        // HandlerManager.AddPropertyHandler(nameof(Content),
-        //     (component, args) => ((EntryText) component).DelayCaretBink());
-    }
-
-    // protected override void OnPropertyChanged(object sender, PropertyChangedEventArgs args)
-    // {
-    //     switch (args.PropertyName)
-    //     {
-    //         case nameof(Content):
-    //             MatchSizeToContent(args);
-    //             DelayCaretBink();
-    //             // SetCaretPosition();
-    //             break;
-    //
-    //         case nameof(MaxSize):
-    //         case nameof(MinSize):
-    //             Size = new Vector(Length, 1);
-    //             break;
-    //
-    //         case nameof(Size):
-    //             Parent?.SetProperty("RequestedContentSpace", Size);
-    //             if (Parent is not null) Center = Parent.Center;
-    //             break;
-    //     }
-    // }
-
-    private void MatchSizeToContent(PropertyChangedEventArgs args)
-    {
-        var length = ((string) args.NewValue!).Length;
-
-        if (Parent is not null)
-        {
-            if (Parent.GetProperty<bool>("AllowTextOverflow"))
-            {
-                Size = new Vector(length, 1);
-                return;
-            }
-
-            var scroll = Parent is Entry && Parent.GetProperty<bool>("AllowTextScrolling");
-            if (scroll)
-            {
-                var allowedWidth = Parent.GetProperty<int>("InnerWidth");
-
-                Size = new Vector(Math.Min(length, allowedWidth), 1);
-                return;
-            }
-        }
-
-        Size = new Vector(length, 1);
+        HandlerManager.AddPropertyHandler<EntryText>(nameof(Content), (component, _) => component.DelayCaretBink());
     }
 
     internal override void Render()
@@ -152,8 +106,8 @@ public class EntryText : Text
         if (Animating) _enumerator.MoveNext();
 
         var visibleSize = GetVisibleSize();
-        if (visibleSize.Y == 0) return;
-        
+        if (visibleSize is {X: <= 0, Y: <= 0}) return;
+
         Span<char> span = stackalloc char[Length];
         Content.CopyTo(span);
 
