@@ -30,10 +30,12 @@ Application.Start();
 ## Screenshots
 
 Minesweeper game created using first version of the library.
+
 ![App Screenshot](minesweeperMenu.png)
 ![App Screenshot](minesweeperGame.png)
 
 Wave Function Collapse visualizer created using [OverlappingModel by Maxim Gumin](https://github.com/mxgmn/WaveFunctionCollapse) algorithm.
+
 ![App Screenshot](wave.png)
 
 ## Features
