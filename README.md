@@ -40,7 +40,7 @@ Wave Function Collapse visualizer created using [OverlappingModel by Maxim Gumin
 
 ## Features
 
-- Controls will respond to chnage of their properties automattically (eg. chaning size to match content)
+- Controls will respond to change of their properties automatically (eg. changing size to match content)
 - Customizable appearance: usage of `System.Drawing.Color` allows for full RGB color scheme
 - Works both in Windows Terminal and CMD
 - Numerous UI event to make the app feel more responsive (`MouseLeftDown`, `MouseEnter`, `MouseMove`, `KeyDown`, `KeyUp`, `GotFocus`, `LostFocus`, etc...)
