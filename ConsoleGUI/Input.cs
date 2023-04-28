@@ -1,10 +1,11 @@
 ﻿using ConsoleGUI.UI;
 using ConsoleGUI.UI.Events;
-using ConsoleGUI.UI.New;
+using ConsoleGUI.UI.Old;
+using ConsoleGUI.UI.Widgets;
 using static ConsoleGUI.NativeConsole;
-using FocusEventType = ConsoleGUI.UI.FocusEventType;
-using KeyboardEventType = ConsoleGUI.UI.KeyboardEventType;
-using MouseEventType = ConsoleGUI.UI.MouseEventType;
+using FocusEventType = ConsoleGUI.UI.Old.FocusEventType;
+using KeyboardEventType = ConsoleGUI.UI.Old.KeyboardEventType;
+using MouseEventType = ConsoleGUI.UI.Old.MouseEventType;
 
 namespace ConsoleGUI;
 

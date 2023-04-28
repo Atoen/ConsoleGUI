@@ -1,11 +1,11 @@
 ﻿using System.Runtime.InteropServices;
 using System.Text;
 using ConsoleGUI.UI;
-using ConsoleGUI.UI.New;
+using ConsoleGUI.UI.Old;
+using ConsoleGUI.UI.Old.Widgets;
 using ConsoleGUI.UI.Widgets;
 using ConsoleGUI.Utils;
 using ConsoleGUI.Visuals;
-using Component = ConsoleGUI.UI.Component;
 
 namespace ConsoleGUI.ConsoleDisplay;
 
@@ -299,7 +299,7 @@ public static class Display
         return calculatedLenght > 0;
     }
 
-    private static void RenderableOnZIndexChanged(Component sender, ZIndexChangedEventArgs e) => SortRenderables();
+    private static void RenderableOnZIndexChanged(OldComponent sender, ZIndexChangedEventArgs e) => SortRenderables();
 
     private static void SortRenderables()
     {

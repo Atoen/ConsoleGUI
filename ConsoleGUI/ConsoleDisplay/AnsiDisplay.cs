@@ -1,6 +1,6 @@
 ﻿using System.Collections.ObjectModel;
 using System.Text;
-using ConsoleGUI.UI.New;
+using ConsoleGUI.UI.Old.Widgets;
 using ConsoleGUI.UI.Widgets;
 using ConsoleGUI.Utils;
 using ConsoleGUI.Visuals;

@@ -1,4 +1,4 @@
-﻿using ConsoleGUI.UI.New;
+﻿using ConsoleGUI.UI.Widgets;
 
 namespace ConsoleGUI.Utils;
 
@@ -18,7 +18,7 @@ public class PropertyChangedHandlerManager
     {
         if (!_handlers.TryGetValue(propertyName, out var propertyHandlers)) return;
 
-        var args = new PropertyChangedEventArgs(propertyName, oldValue, newValue);
+        var args = new PropertyChangedEventArgs(oldValue, newValue);
 
         foreach (var handler in propertyHandlers)
         {
@@ -97,7 +97,7 @@ file static class HandlerExtensions
 {
     public static PropertyHandler<Component> ToBase<TComponent>(this PropertyHandler<TComponent> handler)
         where TComponent : Component =>
-        (component, args) => handler.Invoke((TComponent) component, args);
+        (component, args) => handler.Invoke((TComponent) component,  args);
 
     public static List<PropertyHandler<Component>> ToBaseList<TComponent>(
         this IEnumerable<PropertyHandler<TComponent>> handlers) where TComponent : Component =>

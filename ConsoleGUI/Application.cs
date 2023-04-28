@@ -25,8 +25,10 @@ public static class Application
 
     public static event EventHandler? ApplicationExit;
 
-    public static void Start(DisplayMode displayMode = DisplayMode.Auto)
+    public static void Start(string title = "", DisplayMode displayMode = DisplayMode.Auto)
     {
+        Console.Title = title == string.Empty ? "GUI App" : title;
+        
         Display.Init(displayMode);
         Input.Init();
     }

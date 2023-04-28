@@ -1,4 +1,4 @@
-﻿using ConsoleGUI.UI.New;
+﻿using ConsoleGUI.UI.Widgets;
 
 namespace ConsoleGUI.UI.Events;
 

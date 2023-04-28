@@ -1,62 +1,44 @@
 ﻿using ConsoleGUI.ConsoleDisplay;
 using ConsoleGUI.UI.Events;
-using ConsoleGUI.UI.New;
 
 namespace ConsoleGUI.UI.Widgets;
 
 public class RadioButton : Button
 {
-    public RadioButton(Variable variable, int value)
+    public RadioButton(RadioVariable variable, int buttonValue)
     {
-        Text = new Text(nameof(RadioButton)) {Parent = this};
+        Text.Content = nameof(RadioButton);
 
         _variable = variable;
-        _value = value;
-
-        if (IsSelected) State = State.Highlighted;
+        _value = buttonValue;
     }
 
-    public bool IsSelected => _variable.Val == _value;
-
     public TextMode SelectedTextMode { get; set; } = TextMode.DoubleUnderline;
+    public bool IsSelected => _variable.Value == _value;
 
-    private readonly Variable _variable;
+    private readonly RadioVariable _variable;
     private readonly int _value;
 
     protected override void OnMouseLeftDown(MouseEventArgs e)
     {
-        _variable.Val = _value;
-
+        _variable.Value = _value;
         base.OnMouseLeftDown(e);
     }
 
-    public override void Render()
+    internal override void Render()
     {
         Text.TextMode = IsSelected ? SelectedTextMode : TextMode.Default;
 
         if (IsSelected && State == State.Default) State = State.Highlighted;
-        else if (!IsSelected && !IsMouseOver) State = State.Default;
+        else if (!IsSelected && !IsMouseOver) State = default;
 
         base.Render();
     }
 }
 
-public sealed class Variable
+public sealed class RadioVariable
 {
-    public Variable(int val = 0) => Val = val;
+    public RadioVariable(int value = 0) => Value = value;
 
-    public int Val
-    {
-        get => _val;
-        set
-        {
-            if (value != _val) OnValueChanged?.Invoke(this, value);
-            _val = value;
-        }
-    }
-
-    private int _val;
-
-    public delegate void ValueChangedEventHandler(Variable variable, int newValue);
-    public event ValueChangedEventHandler? OnValueChanged;
+    public int Value { get; set; }
 }

@@ -1,4 +1,4 @@
-﻿using ConsoleGUI.UI.New;
+﻿using ConsoleGUI.UI.Old.Widgets;
 using ConsoleGUI.UI.Widgets;
 using ConsoleGUI.Visuals;
 using Microsoft.Win32.SafeHandles;
