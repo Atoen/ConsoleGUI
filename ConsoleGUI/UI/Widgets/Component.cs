@@ -93,6 +93,18 @@ public abstract class Component : IPosition, ISize
         get => GlobalPosition + Size / 2;
         set => SetField(ref _globalPosition, value - Size / 2);
     }
+    
+    protected internal bool MinSizeSet
+    {
+        get => _minSizeSet;
+        private set => SetField(ref _minSizeSet, value);
+    }
+
+    protected internal bool MaxSizeSet
+    {
+        get => _maxSizeSet;
+        private set => SetField(ref _maxSizeSet, value);
+    }
 
     private readonly Dictionary<string, PropertyInfo> _propertyCache = new();
 
@@ -138,9 +150,6 @@ public abstract class Component : IPosition, ISize
         propInfo.SetValue(this, value);
     }
 
-    private bool _minSizeSet;
-    private bool _maxSizeSet;
-
     #region Backing Fields
 
     private bool _enabled = true;
@@ -154,6 +163,8 @@ public abstract class Component : IPosition, ISize
     private Vector _position;
     private Vector _globalPosition;
     private State _state = State.Default;
+    private bool _minSizeSet;
+    private bool _maxSizeSet;
 
     #endregion
 
@@ -178,9 +189,9 @@ public abstract class Component : IPosition, ISize
         PropertyChangedDelegate<T>? onChanged = null,
         [CallerMemberName] string propertyName = default!)
     {
-        if (EqualityComparer<T>.Default.Equals(field, value)) return;
-
         if (onChanging is not null) value = onChanging(value);
+
+        if (EqualityComparer<T>.Default.Equals(field, value)) return;
 
         var oldValue = field;
         field = value;
@@ -194,13 +205,13 @@ public abstract class Component : IPosition, ISize
 
     private Vector ValidateSize(Vector size)
     {
-        if (_minSizeSet)
+        if (MinSizeSet)
         {
             if (size.X < MinSize.X) size.X = MinSize.X;
             if (size.Y < MinSize.Y) size.Y = MinSize.Y;
         }
 
-        if (_maxSizeSet)
+        if (MaxSizeSet)
         {
             if (size.X > MaxSize.X) size.X = MaxSize.X;
             if (size.Y > MaxSize.Y) size.Y = MaxSize.Y;
@@ -209,19 +220,19 @@ public abstract class Component : IPosition, ISize
         return size;
     }
 
-    protected void RemoveMinSize() => _minSizeSet = false;
+    protected void RemoveMinSize() => MinSizeSet = false;
 
-    protected void RemoveMaxSize() => _maxSizeSet = true;
+    protected void RemoveMaxSize() => MaxSizeSet = true;
 
     private void OnMinSizeChanged(Vector oldValue, Vector newValue)
     {
-        _minSizeSet = true;
+        MinSizeSet = true;
         ValidateSize();
     }
 
     private void OnMaxSizeChanged(Vector oldValue, Vector newValue)
     {
-        _maxSizeSet = true;
+        MaxSizeSet = true;
         ValidateSize();
     }
 

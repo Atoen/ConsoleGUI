@@ -51,12 +51,17 @@ public class EntryText : Text
             return;
         }
 
-        var beforeCaret = Content[..CaretPosition];
-        var afterCaret = Content[CaretPosition..];
+        var span = Content.AsSpan();
 
-        var result = beforeCaret + symbol + afterCaret;
+        var beforeCaret = span[..CaretPosition];
+        var afterCaret = span[CaretPosition..];
 
-        Content = result;
+        Span<char> result = stackalloc char[Length + 1];
+        beforeCaret.CopyTo(result);
+        result[beforeCaret.Length] = symbol;
+        afterCaret.CopyTo(result[(beforeCaret.Length + 1)..]);
+
+        Content = result.ToString();
         CaretPosition++;
     }
 
@@ -64,55 +69,63 @@ public class EntryText : Text
     {
         n = Math.Min(Length, n);
         if (n == 0) return;
-        
+
         Content = Content[..^n];
-        
+
         if (CaretPosition > 0) CaretPosition -= n;
     }
 
     public void RemoveAtCaret()
     {
         if (Length == 0 || CaretPosition == Length) return;
-        
-        var beforeCaret = Content[..CaretPosition];
-        var afterCaret = Content[(CaretPosition + 1)..];
 
-        var result = beforeCaret + afterCaret;
+        var span = Content.AsSpan();
 
-        Content = result;
+        var beforeCaret = span[..CaretPosition];
+        var afterCaret = span[(CaretPosition + 1)..];
+
+        Span<char> result = stackalloc char[Length - 1];
+        beforeCaret.CopyTo(result);
+        afterCaret.CopyTo(result[beforeCaret.Length..]);
+
+        Content = result.ToString();
     }
 
     public void RemoveBeforeCaret()
     {
         if (Length == 0 || CaretPosition == 0) return;
-        
+
         if (CaretPosition == Length)
         {
             RemoveLast();
             return;
         }
-        
-        var beforeCaret = Content[..(CaretPosition - 1)];
-        var afterCaret = Content[CaretPosition..];
 
-        var result = beforeCaret + afterCaret;
+        var span = Content.AsSpan();
 
-        Content = result;
+        var beforeCaret = span[..(CaretPosition - 1)];
+        var afterCaret =span[CaretPosition..];
+
+        Span<char> result = stackalloc char[Length - 1];
+        beforeCaret.CopyTo(result);
+        afterCaret.CopyTo(result[beforeCaret.Length..]);
+
+        Content = result.ToString();
         CaretPosition--;
     }
 
     public void MoveCaretLeft()
     {
         if (CaretPosition <= 0) return;
-        
+
         CaretPosition--;
         ForceCaret();
     }
-    
+
     public void MoveCaretRight()
     {
         if (CaretPosition >= Length) return;
-        
+
         CaretPosition++;
         ForceCaret();
     }
@@ -145,29 +158,21 @@ public class EntryText : Text
             yield return null;
         }
     }
-    
+
     internal override void Render()
     {
         if (Parent is null) return;
-    
+
         if (Animating) _enumerator.MoveNext();
 
         var visibleSize = GetVisibleSize();
         if (visibleSize is {X: <= 0, Y: <= 0}) return;
         var visibleLength = visibleSize.X;
-    
+
         Span<char> span = stackalloc char[Length];
         Content.CopyTo(span);
-        
-        var visibleCaretPosition = Math.Min(visibleLength, CaretPosition - (Length - visibleLength));
 
-        var caretShift = 0;
-        if (visibleCaretPosition < 0)
-        {
-            caretShift = -visibleCaretPosition;
-            visibleCaretPosition = 0;
-        }
-
+        var visibleCaretPosition = GetVisibleCaretPosition(visibleLength, out var caretShift);
         var visibleSlice = GetVisibleSlice(span, visibleLength, caretShift);
 
         if (DisplayingCaret)
@@ -178,7 +183,7 @@ public class EntryText : Text
                 visibleCaretPosition--;
                 visibleSlice[visibleCaretPosition] = Caret;
             }
-            
+
             // Text fits inside
             else
             {
@@ -186,15 +191,29 @@ public class EntryText : Text
                 // if the caret is not at the end it should not increase the span length
                 var caretSpanLength = CaretPosition == Length ? visibleLength + 1 : visibleLength;
                 Span<char> caretSpan = stackalloc char[caretSpanLength];
-                
+
                 visibleSlice.CopyTo(caretSpan);
                 caretSpan[visibleCaretPosition] = Caret;
-            
+
                 visibleSlice = caretSpan;
             }
         }
 
         Display.Print(GlobalPosition.X, GlobalPosition.Y, visibleSlice, Foreground, Background, Alignment, TextMode);
+    }
+
+    private int GetVisibleCaretPosition(int visibleLength, out int caretShift)
+    {
+        var visibleCaretPosition = Math.Min(visibleLength, CaretPosition - (Length - visibleLength));
+
+        caretShift = 0;
+        if (visibleCaretPosition < 0)
+        {
+            caretShift = -visibleCaretPosition;
+            visibleCaretPosition = 0;
+        }
+
+        return visibleCaretPosition;
     }
 
     private Span<char> GetVisibleSlice(Span<char> span, int visibleLength, int caretShift)

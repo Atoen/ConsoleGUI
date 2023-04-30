@@ -3,6 +3,7 @@
 namespace ConsoleGUI.Utils;
 
 public delegate void PropertyHandler<in TComponent>(TComponent component, PropertyChangedEventArgs args) where TComponent : Component;
+public delegate void PropertyHandler<in TComponent, TProp>(TComponent component, PropertyChangedEventArgs<TProp> args) where TComponent : Component;
 
 public class PropertyChangedHandlerManager
 {

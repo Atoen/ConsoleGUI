@@ -1,20 +1,15 @@
 ﻿namespace ConsoleGUI.UI.Widgets;
 
-public class PropertyChangedEventArgs : EventArgs
+public class PropertyChangedEventArgs : PropertyChangedEventArgs<object?>
 {
-    public PropertyChangedEventArgs(object? oldValue, object? newValue)
+    public PropertyChangedEventArgs(object? oldValue, object? newValue) : base(oldValue, newValue)
     {
-        NewValue = newValue;
-        OldValue = oldValue;
     }
-    
-    public object? OldValue { get; }
-    public object? NewValue { get; }
 
     public PropertyChangedEventArgs<T> As<T>() => new((T) OldValue!, (T) NewValue!);
 }
 
-public class PropertyChangedEventArgs<T>
+public class PropertyChangedEventArgs<T> : EventArgs
 {
     public PropertyChangedEventArgs(T oldValue, T newValue)
     {
@@ -24,5 +19,7 @@ public class PropertyChangedEventArgs<T>
 
     public T OldValue { get; }
     public T NewValue { get; }
+
+    public static implicit operator PropertyChangedEventArgs(PropertyChangedEventArgs<T> args) => new(args.OldValue, args.NewValue);
 }
 

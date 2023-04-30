@@ -46,7 +46,7 @@ public class Canvas : ContentOldControl
 
         var newSize = Buffer.Size + sizeDifference;
         newSize = newSize.ExpandTo(MinBufferSize);
-        
+
         if (newSize == Buffer.Size) return;
 
         Buffer.Resize(newSize, EmptyColor);

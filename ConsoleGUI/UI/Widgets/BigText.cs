@@ -16,7 +16,7 @@ public class BigText : Text
         _result = new string[Font.Height];
 
         if (text.Length != 0) GenerateNew();
-        
+
         SetHandlers();
     }
 
@@ -159,7 +159,7 @@ public class BigText : Text
         if (Parent is null || Length == 0) return;
 
         if (_shouldSwap) SwapData();
-        
+
         var visibleSize = GetVisibleSize();
         if (visibleSize is {X: <= 0, Y: <= 0}) return;
 

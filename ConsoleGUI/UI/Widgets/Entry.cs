@@ -60,7 +60,7 @@ public class Entry : Control, ITextWidget<EntryText>
     private bool _allowTextOverflow;
     private EntryText _text = null!;
     private Vector _textPosition;
-    
+
     // Watermark should be able to request resize
     private readonly bool _setWatermarkSize;
 
@@ -96,7 +96,7 @@ public class Entry : Control, ITextWidget<EntryText>
             if (component.AllowTextOverflow || !_setWatermarkSize) component.Resize();
         });
     }
-    
+
     private void ReplaceText(PropertyChangedEventArgs<Text?> args)
     {
         var oldText = args.OldValue;
@@ -165,7 +165,7 @@ public class Entry : Control, ITextWidget<EntryText>
             case ConsoleKey.Enter:
                 ExitEntryMode();
                 return;
-            
+
             case ConsoleKey.Delete:
                 Text.RemoveAtCaret();
                 break;
@@ -182,7 +182,7 @@ public class Entry : Control, ITextWidget<EntryText>
                 Text.MoveCaretRight();
                 return;
         }
-        
+
         var maxLength = MaxTextLength;
         if (!AllowTextOverflow && !AllowTextScrolling)
         {
@@ -207,19 +207,19 @@ public class Entry : Control, ITextWidget<EntryText>
     protected override void OnMouseLeftDown(MouseEventArgs e)
     {
         State = State.Pressed;
-        
+
         if (_inEntryMode) ExitEntryMode();
         else EnterEntryMode();
 
         base.OnMouseLeftDown(e);
     }
-    
+
     protected override void OnMouseMove(MouseEventArgs e)
     {
         if (e.LeftButton == MouseButtonState.Released) State = State.Highlighted;
         base.OnMouseMove(e);
     }
-    
+
     protected override void OnMouseEnter(MouseEventArgs e)
     {
         State = State.Highlighted;

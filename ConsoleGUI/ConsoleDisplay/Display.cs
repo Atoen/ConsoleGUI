@@ -63,7 +63,7 @@ public static class Display
             _renderer = new NativeDisplay(Width, Height);
         }
         else _renderer = new AnsiDisplay(Width, Height);
-        
+
         new Thread(Start)
         {
             Name = "Display Thread"

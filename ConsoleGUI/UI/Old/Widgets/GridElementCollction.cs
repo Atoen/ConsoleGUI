@@ -57,7 +57,7 @@ public sealed class GridElementCollection<T> : ObservableList<T> where T : GridL
     public void FitSize(int size)
     {
         if (Count < 2) return;
-        
+
         var manualSize = 0;
         var autoSizeElements = 0;
 

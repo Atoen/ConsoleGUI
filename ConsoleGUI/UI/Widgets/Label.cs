@@ -45,7 +45,7 @@ public class Label<TText> : Control, ITextWidget<TText> where TText : Text
             {(nameof(Position), nameof(GlobalPosition), nameof(TextPosition), nameof(Size), nameof(Width), nameof(Height)), CenterText},
             {nameof(Text), (component, args) => component.ReplaceText(args.As<TText?>())}
         };
-        
+
         HandlerManager.AddHandlers(handlers);
     }
 
